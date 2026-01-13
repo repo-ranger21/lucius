@@ -8,7 +8,6 @@ programming languages to identify potential security issues.
 
 import argparse
 import sys
-import os
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -29,7 +28,6 @@ class LuciusSentinel:
         """
         self.target_path = Path(target_path)
         self.scan_type = scan_type
-        self.vulnerabilities = []
         
     def scan(self) -> Dict[str, Any]:
         """

@@ -2,6 +2,7 @@
 HTML report generator for vulnerability scan results.
 """
 
+import html
 from typing import Dict, Any
 from datetime import datetime
 
@@ -29,7 +30,7 @@ class HTMLReporter:
             key=lambda v: severity_order.get(v.get("severity", "info").lower(), 4)
         )
         
-        html = f"""<!DOCTYPE html>
+        html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -170,26 +171,32 @@ class HTMLReporter:
 """
         
         if not sorted_vulns:
-            html += "<p>No vulnerabilities detected. ✅</p>"
+            html_content += "<p>No vulnerabilities detected. ✅</p>"
         else:
             for vuln in sorted_vulns:
-                severity = vuln.get("severity", "info").lower()
-                html += f"""
+                severity = html.escape(vuln.get("severity", "info").lower())
+                description = html.escape(vuln.get('description', 'Unknown vulnerability'))
+                vuln_type = html.escape(vuln.get('type', 'N/A'))
+                file_path = html.escape(vuln.get('file', 'N/A'))
+                line = html.escape(str(vuln.get('line', 'N/A')))
+                code_snippet = html.escape(vuln.get('code_snippet', ''))
+                
+                html_content += f"""
         <div class="vulnerability {severity}">
-            <h3>{vuln.get('description', 'Unknown vulnerability')}</h3>
+            <h3>{description}</h3>
             <span class="severity {severity}">{severity}</span>
-            <p><strong>Type:</strong> {vuln.get('type', 'N/A')}</p>
+            <p><strong>Type:</strong> {vuln_type}</p>
             <div class="meta">
-                <p><strong>File:</strong> {vuln.get('file', 'N/A')}</p>
-                <p><strong>Line:</strong> {vuln.get('line', 'N/A')}</p>
+                <p><strong>File:</strong> {file_path}</p>
+                <p><strong>Line:</strong> {line}</p>
             </div>
             <div class="code-snippet">
-                <code>{vuln.get('code_snippet', '')}</code>
+                <code>{code_snippet}</code>
             </div>
         </div>
 """
         
-        html += f"""
+        html_content += f"""
         <div class="timestamp">
             Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         </div>
@@ -197,4 +204,4 @@ class HTMLReporter:
 </body>
 </html>
 """
-        return html
+        return html_content

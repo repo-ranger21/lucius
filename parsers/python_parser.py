@@ -14,7 +14,7 @@ class PythonParser:
         """Initialize the Python parser with vulnerability patterns."""
         self.vulnerability_patterns = {
             "sql_injection": {
-                "pattern": r'execute\s*\([^)]*[%+]\s*["\']',
+                "pattern": r'(execute|cursor\.execute|query)\s*\([^)]*(\+|%|\.format|f["\'])',
                 "severity": "high",
                 "description": "Potential SQL injection vulnerability"
             },

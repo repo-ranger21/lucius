@@ -76,8 +76,9 @@ class JavaScriptParser:
                 pattern = vuln_config["pattern"]
                 
                 for line_num, line in enumerate(lines, start=1):
-                    # Skip comments
-                    if line.strip().startswith('//') or line.strip().startswith('*'):
+                    # Skip single-line comments and common block comment patterns
+                    stripped = line.strip()
+                    if stripped.startswith('//') or stripped.startswith('/*') or (stripped.startswith('*') and not stripped.startswith('*=')):
                         continue
                         
                     if re.search(pattern, line, re.IGNORECASE):
