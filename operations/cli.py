@@ -29,7 +29,7 @@ def cli(ctx: click.Context, verbose: bool) -> None:
 
 # Grant commands
 @cli.group()
-def grants():
+def grants() -> None:
     """Grant management commands."""
     pass
 
@@ -151,7 +151,7 @@ def update_grant(ctx: click.Context, grant_id: str, status: str | None, priority
 
 # Deadline monitoring commands
 @cli.group()
-def deadlines():
+def deadlines() -> None:
     """Deadline monitoring commands."""
     pass
 
@@ -195,7 +195,7 @@ def start_monitor(ctx: click.Context, interval: int):
 
 # Data cleaning commands
 @cli.group()
-def data():
+def data() -> None:
     """Data cleaning commands."""
     pass
 

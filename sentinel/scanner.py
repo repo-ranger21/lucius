@@ -101,7 +101,7 @@ class VulnerabilityScanner:
         tasks = [scan_dep(dep) for dep in dependencies]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        vulnerabilities = []
+        vulnerabilities: list[dict[str, Any]] = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 logger.warning(f"Error scanning {dependencies[i].name}: {result}")

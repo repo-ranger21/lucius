@@ -34,7 +34,7 @@ class ThreatModelTrainer:
     - Model serialization
     """
 
-    def __init__(self, feature_extractor: VulnerabilityFeatureExtractor = None):
+    def __init__(self, feature_extractor: VulnerabilityFeatureExtractor | None = None):
         """Initialize trainer with feature extractor."""
         self.feature_extractor = feature_extractor or VulnerabilityFeatureExtractor()
 
