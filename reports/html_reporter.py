@@ -138,34 +138,34 @@ class HTMLReporter:
     <div class="container">
         <h1>🛡️ Lucius Sentinel Security Report</h1>
         
-        <p><strong>Target:</strong> {results.get('target', 'N/A')}</p>
-        <p><strong>Scan Type:</strong> {results.get('scan_type', 'N/A')}</p>
+        <p><strong>Target:</strong> {html.escape(str(results.get('target', 'N/A')))}</p>
+        <p><strong>Scan Type:</strong> {html.escape(str(results.get('scan_type', 'N/A')))}</p>
         
         <h2>Summary</h2>
         <div class="summary">
             <div class="summary-box critical">
-                <h3>{summary.get('critical', 0)}</h3>
+                <h3>{html.escape(str(summary.get('critical', 0)))}</h3>
                 <p>Critical</p>
             </div>
             <div class="summary-box high">
-                <h3>{summary.get('high', 0)}</h3>
+                <h3>{html.escape(str(summary.get('high', 0)))}</h3>
                 <p>High</p>
             </div>
             <div class="summary-box medium">
-                <h3>{summary.get('medium', 0)}</h3>
+                <h3>{html.escape(str(summary.get('medium', 0)))}</h3>
                 <p>Medium</p>
             </div>
             <div class="summary-box low">
-                <h3>{summary.get('low', 0)}</h3>
+                <h3>{html.escape(str(summary.get('low', 0)))}</h3>
                 <p>Low</p>
             </div>
             <div class="summary-box info">
-                <h3>{summary.get('info', 0)}</h3>
+                <h3>{html.escape(str(summary.get('info', 0)))}</h3>
                 <p>Info</p>
             </div>
         </div>
         
-        <p><strong>Files Scanned:</strong> {summary.get('files_scanned', 0)} / {summary.get('total_files', 0)}</p>
+        <p><strong>Files Scanned:</strong> {html.escape(str(summary.get('files_scanned', 0)))} / {html.escape(str(summary.get('total_files', 0)))}</p>
         
         <h2>Vulnerabilities</h2>
 """

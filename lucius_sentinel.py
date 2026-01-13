@@ -117,7 +117,9 @@ class LuciusSentinel:
             ".pytest_cache", ".mypy_cache", ".tox", "dist", "build"
         ]
         
-        return any(pattern in str(file_path) for pattern in skip_patterns)
+        # Check if any part of the path contains a skip pattern
+        path_parts = file_path.parts
+        return any(pattern in path_parts for pattern in skip_patterns)
 
 
 def main():
