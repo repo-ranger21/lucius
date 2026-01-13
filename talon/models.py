@@ -143,7 +143,7 @@ class Notification(db.Model):
     recipient = Column(String(255), nullable=False)
     subject = Column(String(500))
     body = Column(Text, nullable=False)
-    metadata = Column(JSON, default=dict)
+    notification_metadata = Column(JSON, default=dict)
     status = Column(String(20), default="pending", index=True)
     sent_at = Column(DateTime(timezone=True))
     error_message = Column(Text)
@@ -159,7 +159,7 @@ class Notification(db.Model):
             "recipient": self.recipient,
             "subject": self.subject,
             "body": self.body,
-            "metadata": self.metadata,
+            "metadata": self.notification_metadata,
             "status": self.status,
             "sent_at": self.sent_at.isoformat() if self.sent_at else None,
             "error_message": self.error_message,
