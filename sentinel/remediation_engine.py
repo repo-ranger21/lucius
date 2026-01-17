@@ -377,7 +377,6 @@ class RemediationEngine:
 
             try:
                 # Create and checkout new branch
-                current = self.repo.active_branch
                 self.repo.git.checkout('-b', branch_name)
             except Exception as e:
                 plan.metadata['branch_error'] = str(e)
@@ -702,18 +701,15 @@ class RemediationEngine:
             origin = self.repo.remote('origin')
             origin.push(plan.branch_name)
 
-            # Generate PR description
-            pr_title = f"Security: Automated vulnerability remediation ({plan.applied_count} fixes)"
-            pr_body = self._generate_pr_description(plan)
-
             # Note: Actual PR creation would require GitHub API integration
             # This is a placeholder for the PR URL that would be returned
             # In production, use PyGithub or similar library
+            # PR title and body would be generated with _generate_pr_description(plan)
 
             return f"{self.git_remote}/pulls/new/{plan.branch_name}"
 
         except Exception as e:
-            raise Exception(f"Failed to create PR: {e}")
+            raise Exception(f"Failed to create PR: {e}") from e
 
     def _generate_pr_description(
         self,
@@ -784,7 +780,7 @@ class RemediationEngine:
                     action.status = RemediationStatus.ROLLED_BACK
 
         except Exception as e:
-            raise Exception(f"Failed to rollback remediation: {e}")
+            raise Exception(f"Failed to rollback remediation: {e}") from e
 
 
 # Factory function

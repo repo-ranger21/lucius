@@ -41,7 +41,7 @@ class TestVulnerabilitySchemas:
             severity=SeverityLevel.CRITICAL,
             cvss_score=10.0,
         )
-        
+
         assert data.cve_id == "CVE-2021-44228"
         assert data.severity == SeverityLevel.CRITICAL
 
@@ -51,7 +51,7 @@ class TestVulnerabilitySchemas:
             cve_id="cve-2021-44228",
             severity=SeverityLevel.HIGH,
         )
-        
+
         assert data.cve_id == "CVE-2021-44228"
 
     def test_vulnerability_create_strips_whitespace(self):
@@ -60,7 +60,7 @@ class TestVulnerabilitySchemas:
             cve_id="  CVE-2021-44228  ",
             severity=SeverityLevel.HIGH,
         )
-        
+
         assert data.cve_id == "CVE-2021-44228"
 
     def test_vulnerability_create_invalid_cve_format(self):
@@ -70,7 +70,7 @@ class TestVulnerabilitySchemas:
                 cve_id="INVALID",
                 severity=SeverityLevel.HIGH,
             )
-        
+
         assert "cve_id" in str(exc_info.value)
 
     def test_vulnerability_create_cve_too_short(self):
@@ -89,7 +89,7 @@ class TestVulnerabilitySchemas:
                 severity=SeverityLevel.HIGH,
                 cvss_score=15.0,
             )
-        
+
         with pytest.raises(ValidationError):
             VulnerabilityCreate(
                 cve_id="CVE-2021-44228",
@@ -102,7 +102,7 @@ class TestVulnerabilitySchemas:
         data = VulnerabilityUpdate(
             description="Updated description",
         )
-        
+
         assert data.description == "Updated description"
         assert data.severity == SeverityLevel.UNKNOWN
 
@@ -130,15 +130,15 @@ class TestVulnerabilitySchemas:
             threat_score = 95.0
             created_at = datetime.utcnow()
             updated_at = datetime.utcnow()
-        
+
         data = VulnerabilityResponse.model_validate(MockVuln())
-        
+
         assert data.cve_id == "CVE-2021-44228"
 
     def test_vulnerability_search_query_defaults(self):
         """Search query has sensible defaults."""
         query = VulnerabilitySearchQuery()
-        
+
         assert query.limit == 50
         assert query.offset == 0
         assert query.query is None
@@ -147,7 +147,7 @@ class TestVulnerabilitySchemas:
         """Search limit has bounds."""
         with pytest.raises(ValidationError):
             VulnerabilitySearchQuery(limit=0)
-        
+
         with pytest.raises(ValidationError):
             VulnerabilitySearchQuery(limit=5000)
 
@@ -162,7 +162,7 @@ class TestScanSchemas:
             package_manager="npm",
             total_dependencies=100,
         )
-        
+
         assert data.project_name == "my-project"
         assert data.package_manager == "npm"
 
@@ -172,7 +172,7 @@ class TestScanSchemas:
             project_name="my-project",
             package_manager="NPM",
         )
-        
+
         assert data.package_manager == "npm"
 
     def test_scan_create_requires_project_name(self):
@@ -197,7 +197,7 @@ class TestScanSchemas:
                 ),
             ],
         )
-        
+
         assert len(data.vulnerabilities) == 1
 
     def test_scan_vulnerability_item_valid(self):
@@ -210,7 +210,7 @@ class TestScanSchemas:
             severity=SeverityLevel.CRITICAL,
             cvss_score=10.0,
         )
-        
+
         assert item.package_name == "log4j"
 
     def test_scan_result_response(self):
@@ -229,7 +229,7 @@ class TestScanSchemas:
             status=ScanStatus.COMPLETED,
             created_at=datetime.utcnow(),
         )
-        
+
         assert data.vulnerable_count == 5
 
 
@@ -243,7 +243,7 @@ class TestCommonSchemas:
             data={"id": "123"},
             message="Created successfully",
         )
-        
+
         assert response.success is True
 
     def test_api_response_failure(self):
@@ -252,7 +252,7 @@ class TestCommonSchemas:
             success=False,
             error="Validation failed",
         )
-        
+
         assert response.success is False
         assert response.error == "Validation failed"
 
@@ -263,7 +263,7 @@ class TestCommonSchemas:
             error_code="RESOURCE_NOT_FOUND",
             details={"resource_id": "123"},
         )
-        
+
         assert response.success is False
         assert response.error_code == "RESOURCE_NOT_FOUND"
 
@@ -277,7 +277,7 @@ class TestCommonSchemas:
             has_next=True,
             has_prev=False,
         )
-        
+
         assert len(response.items) == 2
         assert response.has_next is True
 

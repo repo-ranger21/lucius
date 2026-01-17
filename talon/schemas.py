@@ -358,7 +358,7 @@ class ErrorResponse(BaseModel):
         default=None,
         description="Machine-readable error code",
     )
-    details: Optional[dict[str, Any]] = Field(
+    details: dict[str, Any] | None = Field(
         default=None,
         description="Additional error details",
     )
