@@ -6,12 +6,11 @@ with proper input sanitization and output serialization.
 """
 
 from datetime import datetime
-from decimal import Decimal
 from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class SeverityLevel(str, Enum):
@@ -279,7 +278,7 @@ class ScanResultResponse(BaseModel):
         default=None,
         description="Completion timestamp",
     )
-    vulnerabilities: Optional[list[ScanVulnerabilityItem]] = Field(
+    vulnerabilities: list[ScanVulnerabilityItem | None] = Field(
         default=None,
         description="Vulnerability details (when requested)",
     )

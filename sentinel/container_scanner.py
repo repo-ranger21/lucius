@@ -12,14 +12,10 @@ This module provides comprehensive container image security scanning:
 
 import asyncio
 import json
-import subprocess
-import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
-import tarfile
-import hashlib
+from typing import Any
 
 
 @dataclass
@@ -29,14 +25,14 @@ class ContainerVulnerability:
     vulnerability_id: str  # CVE ID
     package_name: str
     installed_version: str
-    fixed_version: Optional[str]
+    fixed_version: str | None
     severity: str
     layer_id: str
     description: str
-    cvss_score: Optional[float] = None
-    references: List[str] = field(default_factory=list)
+    cvss_score: float | None = None
+    references: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'vulnerability_id': self.vulnerability_id,
             'package_name': self.package_name,
@@ -57,10 +53,10 @@ class ImageLayer:
     layer_id: str
     size: int
     command: str
-    vulnerabilities: List[ContainerVulnerability] = field(default_factory=list)
-    packages_added: List[str] = field(default_factory=list)
+    vulnerabilities: list[ContainerVulnerability] = field(default_factory=list)
+    packages_added: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'layer_id': self.layer_id,
             'size': self.size,
@@ -79,14 +75,14 @@ class ContainerScanResult:
     image_tag: str
     image_id: str
     scan_time: datetime
-    layers: List[ImageLayer] = field(default_factory=list)
-    vulnerabilities: List[ContainerVulnerability] = field(default_factory=list)
-    os_type: Optional[str] = None
-    os_version: Optional[str] = None
+    layers: list[ImageLayer] = field(default_factory=list)
+    vulnerabilities: list[ContainerVulnerability] = field(default_factory=list)
+    os_type: str | None = None
+    os_version: str | None = None
     total_size: int = 0
-    dockerfile_issues: List[Dict[str, Any]] = field(default_factory=list)
-    security_score: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    dockerfile_issues: list[dict[str, Any]] = field(default_factory=list)
+    security_score: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def critical_count(self) -> int:
@@ -104,7 +100,7 @@ class ContainerScanResult:
     def low_count(self) -> int:
         return sum(1 for v in self.vulnerabilities if v.severity == 'LOW')
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'image_name': self.image_name,
             'image_tag': self.image_tag,
@@ -186,7 +182,7 @@ class ContainerScanner:
         self,
         image_name: str,
         image_tag: str = "latest",
-        dockerfile_path: Optional[str] = None,
+        dockerfile_path: str | None = None,
     ) -> ContainerScanResult:
         """
         Scan container image for vulnerabilities
@@ -267,7 +263,7 @@ class ContainerScanner:
                     result.total_size = image_data.get('Size', 0)
 
                     # Get OS info from config
-                    config = image_data.get('Config', {})
+                    image_data.get('Config', {})
                     result.metadata['architecture'] = image_data.get('Architecture')
                     result.metadata['created'] = image_data.get('Created')
 
@@ -275,7 +271,7 @@ class ContainerScanner:
                     layers = image_data.get('RootFS', {}).get('Layers', [])
                     history = image_data.get('History', [])
 
-                    for i, (layer_hash, hist) in enumerate(zip(layers, history)):
+                    for _i, (layer_hash, hist) in enumerate(zip(layers, history, strict=False)):
                         layer = ImageLayer(
                             layer_id=layer_hash[:12],
                             size=hist.get('Size', 0),
@@ -309,7 +305,7 @@ class ContainerScanner:
 
                 # Parse Trivy results
                 for target in data.get('Results', []):
-                    target_type = target.get('Type', '')
+                    target.get('Type', '')
                     vulnerabilities = target.get('Vulnerabilities', [])
 
                     for vuln in vulnerabilities:
@@ -379,7 +375,7 @@ class ContainerScanner:
         except Exception as e:
             result.metadata['grype_error'] = str(e)
 
-    def _extract_cvss_score(self, vuln: Dict[str, Any]) -> Optional[float]:
+    def _extract_cvss_score(self, vuln: dict[str, Any]) -> float | None:
         """Extract CVSS score from vulnerability data"""
         # Try to get CVSS score from various fields
         cvss = vuln.get('CVSS', {})
@@ -457,7 +453,7 @@ class ContainerScanner:
                 return
 
             content = dockerfile.read_text()
-            lines = content.split('\n')
+            content.split('\n')
 
             # Check for best practice violations
             for rule in self.DOCKERFILE_RULES:
@@ -554,7 +550,7 @@ class ContainerScanner:
 async def scan_container(
     image_name: str,
     image_tag: str = "latest",
-    dockerfile_path: Optional[str] = None,
+    dockerfile_path: str | None = None,
 ) -> ContainerScanResult:
     """
     Convenience function to scan a container image
@@ -587,12 +583,12 @@ if __name__ == "__main__":
 
         result = await scan_container(image_name, image_tag)
 
-        print(f"\n=== Container Scan Results ===")
+        print("\n=== Container Scan Results ===")
         print(f"Image: {result.image_name}:{result.image_tag}")
         print(f"Image ID: {result.image_id}")
         print(f"Size: {result.total_size / (1024 * 1024):.2f} MB")
         print(f"Security Score: {result.security_score:.1f}/100")
-        print(f"\nVulnerabilities:")
+        print("\nVulnerabilities:")
         print(f"  Critical: {result.critical_count}")
         print(f"  High: {result.high_count}")
         print(f"  Medium: {result.medium_count}")

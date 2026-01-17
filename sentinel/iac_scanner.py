@@ -20,11 +20,12 @@ Detects:
 
 import json
 import re
-import yaml
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
+from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -36,15 +37,15 @@ class IaCFinding:
     severity: str  # CRITICAL, HIGH, MEDIUM, LOW, INFO
     issue_type: str
     file_path: str
-    line_number: Optional[int]
+    line_number: int | None
     description: str
     remediation: str
-    cis_control: Optional[str] = None
-    compliance_frameworks: List[str] = field(default_factory=list)
-    impact: Optional[str] = None
-    risk_score: Optional[float] = None
+    cis_control: str | None = None
+    compliance_frameworks: list[str] = field(default_factory=list)
+    impact: str | None = None
+    risk_score: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'resource_type': self.resource_type,
             'resource_name': self.resource_name,
@@ -67,10 +68,10 @@ class IaCScanResult:
 
     target_path: str
     scan_time: datetime
-    findings: List[IaCFinding] = field(default_factory=list)
+    findings: list[IaCFinding] = field(default_factory=list)
     files_scanned: int = 0
     resources_analyzed: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def critical_count(self) -> int:
@@ -88,7 +89,7 @@ class IaCScanResult:
     def low_count(self) -> int:
         return sum(1 for f in self.findings if f.severity == 'LOW')
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'target_path': self.target_path,
             'scan_time': self.scan_time.isoformat(),
@@ -508,7 +509,7 @@ class IaCScanner:
 class TerraformParser:
     """Simple Terraform HCL parser"""
 
-    def parse(self, content: str) -> List[Dict[str, Any]]:
+    def parse(self, content: str) -> list[dict[str, Any]]:
         """Parse Terraform file and extract resources"""
         resources = []
 
@@ -542,7 +543,7 @@ class TerraformParser:
 class KubernetesParser:
     """Kubernetes manifest parser"""
 
-    def parse(self, content: str) -> List[Dict[str, Any]]:
+    def parse(self, content: str) -> list[dict[str, Any]]:
         """Parse Kubernetes YAML manifests"""
         return list(yaml.safe_load_all(content))
 
@@ -550,7 +551,7 @@ class KubernetesParser:
 class CloudFormationParser:
     """CloudFormation template parser"""
 
-    def parse(self, content: str) -> Dict[str, Any]:
+    def parse(self, content: str) -> dict[str, Any]:
         """Parse CloudFormation template"""
         try:
             return json.loads(content)
@@ -573,8 +574,8 @@ async def scan_iac(path: str) -> IaCScanResult:
 
 
 if __name__ == "__main__":
-    import sys
     import asyncio
+    import sys
 
     async def main():
         if len(sys.argv) < 2:
@@ -586,10 +587,10 @@ if __name__ == "__main__":
 
         result = await scan_iac(target)
 
-        print(f"\n=== IaC Security Scan Results ===")
+        print("\n=== IaC Security Scan Results ===")
         print(f"Files Scanned: {result.files_scanned}")
         print(f"Resources Analyzed: {result.resources_analyzed}")
-        print(f"\nFindings:")
+        print("\nFindings:")
         print(f"  Critical: {result.critical_count}")
         print(f"  High: {result.high_count}")
         print(f"  Medium: {result.medium_count}")

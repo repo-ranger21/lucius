@@ -13,16 +13,12 @@ This module provides intelligent, automated remediation capabilities for discove
 
 import asyncio
 import json
-import os
 import re
-import subprocess
-import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set, Tuple
-import shutil
+from typing import Any
 
 import git
 from packaging import version as pkg_version
@@ -58,18 +54,18 @@ class RemediationAction:
     description: str
     risk_level: RemediationRisk
     status: RemediationStatus = RemediationStatus.PENDING
-    package_name: Optional[str] = None
-    current_version: Optional[str] = None
-    target_version: Optional[str] = None
-    file_path: Optional[str] = None
-    changes: List[Dict[str, Any]] = field(default_factory=list)
-    validation_results: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    package_name: str | None = None
+    current_version: str | None = None
+    target_version: str | None = None
+    file_path: str | None = None
+    changes: list[dict[str, Any]] = field(default_factory=list)
+    validation_results: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
-    applied_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    applied_at: datetime | None = None
+    error_message: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             'vulnerability_id': self.vulnerability_id,
@@ -96,13 +92,13 @@ class RemediationPlan:
 
     project_name: str
     scan_id: str
-    actions: List[RemediationAction] = field(default_factory=list)
+    actions: list[RemediationAction] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.utcnow)
     auto_apply_enabled: bool = False
     require_tests: bool = True
     create_pr: bool = True
-    pr_url: Optional[str] = None
-    branch_name: Optional[str] = None
+    pr_url: str | None = None
+    branch_name: str | None = None
 
     @property
     def total_actions(self) -> int:
@@ -124,7 +120,7 @@ class RemediationPlan:
     def applied_count(self) -> int:
         return sum(1 for a in self.actions if a.status == RemediationStatus.APPLIED)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             'project_name': self.project_name,
@@ -158,7 +154,7 @@ class RemediationEngine:
     def __init__(
         self,
         repo_path: str,
-        git_remote: Optional[str] = None,
+        git_remote: str | None = None,
         auto_apply_threshold: RemediationRisk = RemediationRisk.LOW,
         require_tests: bool = True,
     ):
@@ -184,8 +180,8 @@ class RemediationEngine:
 
     async def create_remediation_plan(
         self,
-        scan_result: Dict[str, Any],
-        vulnerabilities: List[Dict[str, Any]],
+        scan_result: dict[str, Any],
+        vulnerabilities: list[dict[str, Any]],
         auto_apply: bool = False,
     ) -> RemediationPlan:
         """
@@ -207,7 +203,7 @@ class RemediationEngine:
         )
 
         # Group vulnerabilities by package
-        package_vulns: Dict[str, List[Dict[str, Any]]] = {}
+        package_vulns: dict[str, list[dict[str, Any]]] = {}
         for vuln in vulnerabilities:
             pkg_name = vuln.get('package_name')
             if pkg_name:
@@ -230,9 +226,9 @@ class RemediationEngine:
     async def _create_dependency_upgrade_action(
         self,
         package_name: str,
-        vulnerabilities: List[Dict[str, Any]],
+        vulnerabilities: list[dict[str, Any]],
         package_manager: str,
-    ) -> Optional[RemediationAction]:
+    ) -> RemediationAction | None:
         """
         Create dependency upgrade remediation action
 
@@ -257,7 +253,7 @@ class RemediationEngine:
                     try:
                         if pkg_version.parse(fixed) > pkg_version.parse(target_version):
                             target_version = fixed
-                    except:
+                    except Exception:
                         target_version = fixed
 
             if not current_version and vuln.get('installed_version'):
@@ -292,8 +288,8 @@ class RemediationEngine:
 
     def _assess_upgrade_risk(
         self,
-        current_version: Optional[str],
-        target_version: Optional[str],
+        current_version: str | None,
+        target_version: str | None,
     ) -> RemediationRisk:
         """
         Assess risk level of version upgrade
@@ -570,7 +566,7 @@ class RemediationEngine:
     async def _validate_remediation(
         self,
         action: RemediationAction,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Validate remediation by running tests
 
@@ -683,7 +679,7 @@ class RemediationEngine:
     async def _create_pull_request(
         self,
         plan: RemediationPlan,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Create pull request for remediation
 

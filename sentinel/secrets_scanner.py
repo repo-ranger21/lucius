@@ -13,16 +13,13 @@ This module provides comprehensive secrets and credential scanning:
 """
 
 import asyncio
-import hashlib
 import math
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set, Pattern
-import subprocess
+from typing import Any
 
 
 @dataclass
@@ -35,14 +32,14 @@ class SecretFinding:
     line_number: int
     matched_string: str  # Redacted version
     pattern_name: str
-    entropy: Optional[float] = None
-    commit_hash: Optional[str] = None
-    commit_author: Optional[str] = None
-    commit_date: Optional[str] = None
-    remediation: Optional[str] = None
+    entropy: float | None = None
+    commit_hash: str | None = None
+    commit_author: str | None = None
+    commit_date: str | None = None
+    remediation: str | None = None
     confidence: str = "HIGH"  # HIGH, MEDIUM, LOW
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'secret_type': self.secret_type,
             'severity': self.severity,
@@ -66,10 +63,10 @@ class SecretScanResult:
     target_path: str
     scan_type: str  # filesystem, git_history
     scan_time: datetime
-    findings: List[SecretFinding] = field(default_factory=list)
+    findings: list[SecretFinding] = field(default_factory=list)
     files_scanned: int = 0
     commits_scanned: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def critical_count(self) -> int:
@@ -87,7 +84,7 @@ class SecretScanResult:
     def low_count(self) -> int:
         return sum(1 for f in self.findings if f.severity == 'LOW')
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'target_path': self.target_path,
             'scan_type': self.scan_type,
@@ -501,7 +498,7 @@ class SecretsScanner:
         line: str,
         file_path: str,
         line_number: int,
-    ) -> List[SecretFinding]:
+    ) -> list[SecretFinding]:
         """Detect high-entropy strings that may be secrets"""
         findings = []
 
@@ -666,11 +663,11 @@ if __name__ == "__main__":
 
         result = await scan_for_secrets(scan_path, scan_git_history=scan_git)
 
-        print(f"\n=== Secrets Scan Results ===")
+        print("\n=== Secrets Scan Results ===")
         print(f"Files Scanned: {result.files_scanned}")
         if result.commits_scanned:
             print(f"Commits Scanned: {result.commits_scanned}")
-        print(f"\nFindings:")
+        print("\nFindings:")
         print(f"  Critical: {result.critical_count}")
         print(f"  High: {result.high_count}")
         print(f"  Medium: {result.medium_count}")

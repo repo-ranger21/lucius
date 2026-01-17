@@ -9,13 +9,13 @@ from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Query, joinedload
 
+from shared.logging import get_logger
 from talon.extensions import db
 from talon.models import ScanResult, ScanVulnerability, Vulnerability
 from talon.repositories.base import BaseRepository
-from shared.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -173,7 +173,7 @@ class ScanRepository(BaseRepository[ScanResult]):
     def get_scan_with_vulnerabilities(
         self,
         scan_id: UUID | str,
-    ) -> Optional[ScanResult]:
+    ) -> ScanResult | None:
         """
         Get scan with eagerly loaded vulnerability details.
 
@@ -197,8 +197,8 @@ class ScanRepository(BaseRepository[ScanResult]):
         self,
         scan_id: UUID | str,
         status: str,
-        error_message: Optional[str] = None,
-    ) -> Optional[ScanResult]:
+        error_message: str | None = None,
+    ) -> ScanResult | None:
         """
         Update scan status.
 
@@ -240,9 +240,9 @@ class ScanRepository(BaseRepository[ScanResult]):
         scan_id: UUID | str,
         vulnerability_id: UUID | str,
         package_name: str,
-        installed_version: Optional[str] = None,
-        fixed_version: Optional[str] = None,
-    ) -> Optional[ScanVulnerability]:
+        installed_version: str | None = None,
+        fixed_version: str | None = None,
+    ) -> ScanVulnerability | None:
         """
         Associate a vulnerability with a scan.
 

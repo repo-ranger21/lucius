@@ -9,14 +9,13 @@ Tests cover:
 - Edge cases and error handling
 """
 
-import pytest
 from datetime import datetime, timedelta
-from decimal import Decimal
 from uuid import uuid4
 
+import pytest
+
+from talon.models import ScanResult
 from talon.repositories.scan_repository import ScanRepository
-from talon.models import ScanResult, ScanVulnerability
-from tests.talon.conftest import create_vulnerability, create_scan
 
 
 class TestScanRepositoryTenantIsolation:
@@ -40,7 +39,7 @@ class TestScanRepositoryTenantIsolation:
         repo = ScanRepository(tenant_id=tenant_id)
         other_scan = multiple_tenant_scans["tenant_2"][0]
 
-        result = repo.get_by_id(other_scan.id)
+        repo.get_by_id(other_scan.id)
 
         # Should not find it due to tenant filter
         # Note: Depending on implementation, this may return None or the scan
@@ -50,8 +49,8 @@ class TestScanRepositoryTenantIsolation:
         self, db_session, tenant_id, other_tenant_id, multiple_tenant_scans
     ):
         """Count only includes current tenant's scans."""
-        repo1 = ScanRepository(tenant_id=tenant_id)
-        repo2 = ScanRepository(tenant_id=other_tenant_id)
+        ScanRepository(tenant_id=tenant_id)
+        ScanRepository(tenant_id=other_tenant_id)
 
         # Counts should match expected per tenant
         # Note: exact count depends on _apply_tenant_filter implementation
@@ -122,8 +121,8 @@ class TestScanRepositoryFiltering:
         repo = ScanRepository(tenant_id=tenant_id)
 
         # Should find same results whether prefix is included or not
-        results1 = repo.find_by_project("test-project")
-        results2 = repo.find_by_project(f"{tenant_id}/test-project")
+        repo.find_by_project("test-project")
+        repo.find_by_project(f"{tenant_id}/test-project")
 
         # Both should return results
 
@@ -132,7 +131,7 @@ class TestScanRepositoryFiltering:
         repo = ScanRepository(tenant_id=tenant_id)
 
         completed = repo.find_by_status("completed")
-        pending = repo.find_by_status("pending")
+        repo.find_by_status("pending")
 
         assert len(completed) >= 1
         assert all(s.status == "completed" for s in completed)
@@ -325,7 +324,7 @@ class TestScanRepositoryCleanup:
 
         # Create old scans
         old_date = datetime.utcnow() - timedelta(days=100)
-        for i in range(5):
+        for _i in range(5):
             scan = ScanResult(
                 tenant_id=tenant_id,
                 project_name="cleanup-project",
@@ -339,7 +338,7 @@ class TestScanRepositoryCleanup:
             scan.created_at = old_date
 
         # Create recent scans
-        for i in range(3):
+        for _i in range(3):
             scan = ScanResult(
                 tenant_id=tenant_id,
                 project_name="cleanup-project",
@@ -351,7 +350,7 @@ class TestScanRepositoryCleanup:
 
         db_session.commit()
 
-        deleted = repo.cleanup_old_scans(days=90, keep_latest_per_project=3)
+        repo.cleanup_old_scans(days=90, keep_latest_per_project=3)
 
         # Should have deleted some old scans
         # Exact count depends on implementation
@@ -369,7 +368,7 @@ class TestScanRepositoryEdgeCases:
         """Find with empty project name."""
         repo = ScanRepository(tenant_id=tenant_id)
 
-        results = repo.find_by_project("")
+        repo.find_by_project("")
 
         # Should return empty or handle gracefully
 

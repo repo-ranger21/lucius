@@ -22,11 +22,10 @@ Provides:
 """
 
 import asyncio
-import hashlib
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Set
+from typing import Any
+
 import aiohttp
 import certifi
 
@@ -36,22 +35,22 @@ class ThreatIntelligence:
     """Aggregated threat intelligence for a vulnerability"""
 
     cve_id: str
-    nvd_data: Optional[Dict[str, Any]] = None
-    exploits: List[Dict[str, Any]] = field(default_factory=list)
+    nvd_data: dict[str, Any] | None = None
+    exploits: list[dict[str, Any]] = field(default_factory=list)
     known_exploited: bool = False
     exploitation_status: str = "UNKNOWN"  # ACTIVE, POC_AVAILABLE, NONE, UNKNOWN
-    mitre_techniques: List[str] = field(default_factory=list)
-    threat_actors: List[str] = field(default_factory=list)
-    malware_families: List[str] = field(default_factory=list)
-    attack_patterns: List[str] = field(default_factory=list)
-    epss_score: Optional[float] = None  # Exploit Prediction Scoring System
-    kev_date_added: Optional[str] = None  # CISA KEV date
-    shodan_results: Optional[Dict[str, Any]] = None
-    github_advisories: List[Dict[str, Any]] = field(default_factory=list)
-    references: List[str] = field(default_factory=list)
+    mitre_techniques: list[str] = field(default_factory=list)
+    threat_actors: list[str] = field(default_factory=list)
+    malware_families: list[str] = field(default_factory=list)
+    attack_patterns: list[str] = field(default_factory=list)
+    epss_score: float | None = None  # Exploit Prediction Scoring System
+    kev_date_added: str | None = None  # CISA KEV date
+    shodan_results: dict[str, Any] | None = None
+    github_advisories: list[dict[str, Any]] = field(default_factory=list)
+    references: list[str] = field(default_factory=list)
     enrichment_timestamp: datetime = field(default_factory=datetime.utcnow)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'cve_id': self.cve_id,
             'nvd_data': self.nvd_data,
@@ -87,10 +86,10 @@ class ThreatIntelligenceAggregator:
 
     def __init__(
         self,
-        nvd_api_key: Optional[str] = None,
-        github_token: Optional[str] = None,
-        shodan_api_key: Optional[str] = None,
-        virustotal_api_key: Optional[str] = None,
+        nvd_api_key: str | None = None,
+        github_token: str | None = None,
+        shodan_api_key: str | None = None,
+        virustotal_api_key: str | None = None,
         cache_ttl: int = 3600,
     ):
         """
@@ -110,14 +109,14 @@ class ThreatIntelligenceAggregator:
         self.cache_ttl = cache_ttl
 
         # In-memory cache
-        self.cache: Dict[str, ThreatIntelligence] = {}
-        self.cache_timestamps: Dict[str, datetime] = {}
+        self.cache: dict[str, ThreatIntelligence] = {}
+        self.cache_timestamps: dict[str, datetime] = {}
 
         # CISA KEV cache
-        self.kev_cache: Optional[Set[str]] = None
-        self.kev_cache_time: Optional[datetime] = None
+        self.kev_cache: set[str] | None = None
+        self.kev_cache_time: datetime | None = None
 
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -385,9 +384,9 @@ class ThreatIntelligenceAggregator:
 
     async def enrich_bulk(
         self,
-        cve_ids: List[str],
+        cve_ids: list[str],
         max_concurrent: int = 10,
-    ) -> Dict[str, ThreatIntelligence]:
+    ) -> dict[str, ThreatIntelligence]:
         """
         Enrich multiple CVEs concurrently
 
@@ -414,7 +413,7 @@ class ThreatIntelligenceAggregator:
 
 async def enrich_cve(
     cve_id: str,
-    nvd_api_key: Optional[str] = None,
+    nvd_api_key: str | None = None,
 ) -> ThreatIntelligence:
     """
     Convenience function to enrich a single CVE
@@ -464,7 +463,7 @@ if __name__ == "__main__":
                 print(f"  - {advisory.get('id')}: {advisory.get('summary', 'N/A')[:80]}")
 
         if intel.nvd_data:
-            print(f"\nNVD Data:")
+            print("\nNVD Data:")
             print(f"  Published: {intel.nvd_data.get('published', 'N/A')}")
             print(f"  Status: {intel.nvd_data.get('vulnStatus', 'N/A')}")
 

@@ -14,7 +14,7 @@ Provides REST API endpoints for advanced scanning capabilities:
 
 from flask import request
 from flask_restx import Namespace, Resource, fields
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import BadRequest
 
 # Note: In production, import actual scanner modules
 # from sentinel.web_scanner import scan_website
@@ -86,8 +86,8 @@ class WebScanResource(Resource):
             data = request.json
             target_url = data.get('target_url')
             scan_type = data.get('scan_type', 'comprehensive')
-            crawl_depth = data.get('crawl_depth', 2)
-            max_pages = data.get('max_pages', 50)
+            data.get('crawl_depth', 2)
+            data.get('max_pages', 50)
 
             # In production, use actual scanner
             # result = await scan_website(
@@ -133,7 +133,7 @@ class ContainerScanResource(Resource):
             data = request.json
             image_name = data.get('image_name')
             image_tag = data.get('image_tag', 'latest')
-            dockerfile_path = data.get('dockerfile_path')
+            data.get('dockerfile_path')
 
             # In production, use actual scanner
             # result = await scan_container(
@@ -174,8 +174,8 @@ class SecretsScanResource(Resource):
         try:
             data = request.json
             path = data.get('path')
-            scan_git_history = data.get('scan_git_history', False)
-            max_commits = data.get('max_commits', 100)
+            data.get('scan_git_history', False)
+            data.get('max_commits', 100)
 
             # In production, use actual scanner
             # result = await scan_for_secrets(
@@ -343,7 +343,7 @@ class ExploitPredictionResource(Resource):
         try:
             data = request.json
             vulnerability = data.get('vulnerability', {})
-            threat_intel = data.get('threat_intel')
+            data.get('threat_intel')
 
             # In production, use actual predictor
             # predictor = ExploitPredictor()
@@ -379,7 +379,7 @@ class RemediationPlanResource(Resource):
         try:
             data = request.json
             scan_id = data.get('scan_id')
-            auto_apply = data.get('auto_apply', False)
+            data.get('auto_apply', False)
 
             if not scan_id:
                 raise BadRequest("Scan ID is required")
@@ -417,9 +417,9 @@ class RemediationApplyResource(Resource):
         try:
             data = request.json
             scan_id = data.get('scan_id')
-            auto_apply = data.get('auto_apply', False)
-            create_pr = data.get('create_pr', True)
-            dry_run = data.get('dry_run', False)
+            data.get('auto_apply', False)
+            data.get('create_pr', True)
+            data.get('dry_run', False)
 
             if not scan_id:
                 raise BadRequest("Scan ID is required")
@@ -457,9 +457,9 @@ class ReachabilityResource(Resource):
         try:
             data = request.json
             package_name = data.get('package_name')
-            vulnerable_function = data.get('vulnerable_function')
-            dependency_graph = data.get('dependency_graph', {})
-            call_graph = data.get('call_graph')
+            data.get('vulnerable_function')
+            data.get('dependency_graph', {})
+            data.get('call_graph')
 
             if not package_name:
                 raise BadRequest("Package name is required")

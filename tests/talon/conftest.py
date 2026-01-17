@@ -2,20 +2,18 @@
 
 import os
 import sys
+from collections.abc import Generator
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Generator
-from uuid import uuid4
 
 import pytest
 from flask import Flask
-from sqlalchemy import event
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from talon.extensions import db
-from talon.models import Vulnerability, ScanResult, ScanVulnerability, Notification, Tenant
+from talon.models import ScanResult, ScanVulnerability, Vulnerability
 
 
 def create_test_app() -> Flask:
@@ -28,7 +26,7 @@ def create_test_app() -> Flask:
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ECHO"] = False
-    
+
     db.init_app(app)
     return app
 
@@ -146,13 +144,13 @@ def sample_vulnerabilities(db_session) -> list[Vulnerability]:
             "published_date": datetime.utcnow() - timedelta(days=365),
         },
     ]
-    
+
     vulns = []
     for data in vulns_data:
         vuln = Vulnerability(**data)
         db_session.add(vuln)
         vulns.append(vuln)
-    
+
     db_session.commit()
     return vulns
 
@@ -196,7 +194,7 @@ def sample_scan_with_vulns(
     scan = ScanResult(**sample_scan_data)
     db_session.add(scan)
     db_session.flush()
-    
+
     # Associate vulnerabilities
     for i, vuln in enumerate(sample_vulnerabilities[:3]):
         scan_vuln = ScanVulnerability(
@@ -207,7 +205,7 @@ def sample_scan_with_vulns(
             fixed_version="1.0.1",
         )
         db_session.add(scan_vuln)
-    
+
     db_session.commit()
     return scan
 
@@ -216,7 +214,7 @@ def sample_scan_with_vulns(
 def multiple_tenant_scans(db_session, tenant_id, other_tenant_id) -> dict:
     """Create scans for multiple tenants."""
     scans = {"tenant_1": [], "tenant_2": []}
-    
+
     # Tenant 1 scans
     for i in range(3):
         scan = ScanResult(
@@ -231,7 +229,7 @@ def multiple_tenant_scans(db_session, tenant_id, other_tenant_id) -> dict:
         )
         db_session.add(scan)
         scans["tenant_1"].append(scan)
-    
+
     # Tenant 2 scans
     for i in range(2):
         scan = ScanResult(
@@ -246,7 +244,7 @@ def multiple_tenant_scans(db_session, tenant_id, other_tenant_id) -> dict:
         )
         db_session.add(scan)
         scans["tenant_2"].append(scan)
-    
+
     db_session.commit()
     return scans
 

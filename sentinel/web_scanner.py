@@ -14,12 +14,13 @@ This module provides comprehensive web application security scanning capabilitie
 
 import asyncio
 import re
-import ssl
 import socket
-from typing import Dict, List, Any, Optional, Set
-from urllib.parse import urlparse, urljoin
+import ssl
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
+from urllib.parse import urljoin, urlparse
+
 import aiohttp
 import certifi
 from bs4 import BeautifulSoup
@@ -34,15 +35,15 @@ class WebVulnerability:
     title: str
     description: str
     affected_url: str
-    evidence: Optional[str] = None
-    remediation: Optional[str] = None
-    cwe_id: Optional[str] = None
-    owasp_category: Optional[str] = None
-    cvss_score: Optional[float] = None
+    evidence: str | None = None
+    remediation: str | None = None
+    cwe_id: str | None = None
+    owasp_category: str | None = None
+    cvss_score: float | None = None
     confidence: str = "HIGH"  # HIGH, MEDIUM, LOW
-    references: List[str] = field(default_factory=list)
+    references: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             'vuln_type': self.vuln_type,
@@ -67,15 +68,15 @@ class WebScanResult:
     target_url: str
     scan_type: str
     start_time: datetime
-    end_time: Optional[datetime] = None
-    vulnerabilities: List[WebVulnerability] = field(default_factory=list)
-    security_headers: Dict[str, Any] = field(default_factory=dict)
-    ssl_info: Dict[str, Any] = field(default_factory=dict)
-    cookies: List[Dict[str, Any]] = field(default_factory=list)
-    external_scripts: List[str] = field(default_factory=list)
-    forms: List[Dict[str, Any]] = field(default_factory=list)
+    end_time: datetime | None = None
+    vulnerabilities: list[WebVulnerability] = field(default_factory=list)
+    security_headers: dict[str, Any] = field(default_factory=dict)
+    ssl_info: dict[str, Any] = field(default_factory=dict)
+    cookies: list[dict[str, Any]] = field(default_factory=list)
+    external_scripts: list[str] = field(default_factory=list)
+    forms: list[dict[str, Any]] = field(default_factory=list)
     total_requests: int = 0
-    scan_metadata: Dict[str, Any] = field(default_factory=dict)
+    scan_metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def critical_count(self) -> int:
@@ -97,7 +98,7 @@ class WebScanResult:
     def info_count(self) -> int:
         return sum(1 for v in self.vulnerabilities if v.severity == 'INFO')
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             'target_url': self.target_url,
@@ -212,7 +213,7 @@ class WebApplicationScanner:
         self.max_redirects = max_redirects
         self.user_agent = user_agent
         self.verify_ssl = verify_ssl
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -517,7 +518,7 @@ class WebApplicationScanner:
         max_pages: int,
     ) -> None:
         """Crawl website and analyze pages"""
-        visited: Set[str] = set()
+        visited: set[str] = set()
         to_visit = [(base_url, 0)]
         base_domain = urlparse(base_url).netloc
 
@@ -594,7 +595,7 @@ class WebApplicationScanner:
             except Exception as e:
                 result.scan_metadata[f'crawl_error_{url}'] = str(e)
 
-    def _analyze_form(self, form, page_url: str) -> Dict[str, Any]:
+    def _analyze_form(self, form, page_url: str) -> dict[str, Any]:
         """Analyze HTML form for security issues"""
         form_data = {
             'action': urljoin(page_url, form.get('action', page_url)),
@@ -636,7 +637,7 @@ class WebApplicationScanner:
 
     async def _test_xss(
         self,
-        form: Dict[str, Any],
+        form: dict[str, Any],
         result: WebScanResult,
     ) -> None:
         """Test form for XSS vulnerabilities"""
@@ -691,7 +692,7 @@ class WebApplicationScanner:
 
     async def _test_sql_injection(
         self,
-        form: Dict[str, Any],
+        form: dict[str, Any],
         result: WebScanResult,
     ) -> None:
         """Test form for SQL injection vulnerabilities"""

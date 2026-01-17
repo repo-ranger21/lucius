@@ -19,8 +19,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
-import subprocess
+from typing import Any
 
 
 @dataclass
@@ -31,17 +30,17 @@ class SASTFinding:
     severity: str  # CRITICAL, HIGH, MEDIUM, LOW, INFO
     file_path: str
     line_number: int
-    column_number: Optional[int]
+    column_number: int | None
     code_snippet: str
     description: str
     remediation: str
     cwe_id: str
     owasp_category: str
     confidence: str = "HIGH"  # HIGH, MEDIUM, LOW
-    function_name: Optional[str] = None
-    variable_name: Optional[str] = None
+    function_name: str | None = None
+    variable_name: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'vulnerability_type': self.vulnerability_type,
             'severity': self.severity,
@@ -65,10 +64,10 @@ class SASTResult:
 
     target_path: str
     scan_time: datetime
-    findings: List[SASTFinding] = field(default_factory=list)
+    findings: list[SASTFinding] = field(default_factory=list)
     files_analyzed: int = 0
     lines_analyzed: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def critical_count(self) -> int:
@@ -86,7 +85,7 @@ class SASTResult:
     def low_count(self) -> int:
         return sum(1 for f in self.findings if f.severity == 'LOW')
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             'target_path': self.target_path,
             'scan_time': self.scan_time.isoformat(),
@@ -432,8 +431,8 @@ async def analyze_code(path: str) -> SASTResult:
 
 
 if __name__ == "__main__":
-    import sys
     import asyncio
+    import sys
 
     async def main():
         if len(sys.argv) < 2:
@@ -445,10 +444,10 @@ if __name__ == "__main__":
 
         result = await analyze_code(target)
 
-        print(f"\n=== SAST Analysis Results ===")
+        print("\n=== SAST Analysis Results ===")
         print(f"Files Analyzed: {result.files_analyzed}")
         print(f"Lines Analyzed: {result.lines_analyzed}")
-        print(f"\nFindings:")
+        print("\nFindings:")
         print(f"  Critical: {result.critical_count}")
         print(f"  High: {result.high_count}")
         print(f"  Medium: {result.medium_count}")

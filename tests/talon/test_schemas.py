@@ -8,25 +8,25 @@ Tests cover:
 - Edge cases
 """
 
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from pydantic import ValidationError
 
 from talon.schemas import (
-    VulnerabilityCreate,
-    VulnerabilityUpdate,
-    VulnerabilityResponse,
-    VulnerabilitySearchQuery,
-    ScanResultCreate,
-    ScanResultResponse,
-    ScanVulnerabilityItem,
-    SeverityLevel,
-    ScanStatus,
     APIResponse,
     ErrorResponse,
     PaginatedResponse,
+    ScanResultCreate,
+    ScanResultResponse,
+    ScanStatus,
+    ScanVulnerabilityItem,
+    SeverityLevel,
+    VulnerabilityCreate,
+    VulnerabilityResponse,
+    VulnerabilitySearchQuery,
+    VulnerabilityUpdate,
 )
 
 

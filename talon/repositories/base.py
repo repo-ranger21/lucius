@@ -2,14 +2,13 @@
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 from uuid import UUID
 
-from sqlalchemy import func, and_
 from sqlalchemy.orm import Query
 
-from talon.extensions import db
 from shared.logging import get_logger
+from talon.extensions import db
 
 T = TypeVar("T", bound=db.Model)
 logger = get_logger(__name__)
@@ -71,7 +70,7 @@ class BaseRepository(ABC, Generic[T]):
         query = db.session.query(self.model_class)
         return self._apply_tenant_filter(query)
 
-    def get_by_id(self, entity_id: UUID | str) -> Optional[T]:
+    def get_by_id(self, entity_id: UUID | str) -> T | None:
         """
         Get entity by ID with tenant isolation.
 
