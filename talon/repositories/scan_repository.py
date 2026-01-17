@@ -98,14 +98,19 @@ class ScanRepository(BaseRepository[ScanResult]):
         else:
             full_project_name = project_name
 
-        return self._base_query().filter(
-            or_(
-                ScanResult.project_name == full_project_name,
-                ScanResult.project_name == project_name,
+        return (
+            self._base_query()
+            .filter(
+                or_(
+                    ScanResult.project_name == full_project_name,
+                    ScanResult.project_name == project_name,
+                )
             )
-        ).order_by(
-            ScanResult.created_at.desc()
-        ).offset(offset).limit(limit).all()
+            .order_by(ScanResult.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
     def find_by_status(
         self,
@@ -124,11 +129,13 @@ class ScanRepository(BaseRepository[ScanResult]):
         """
         status = status.lower().strip()
 
-        return self._base_query().filter(
-            ScanResult.status == status
-        ).order_by(
-            ScanResult.created_at.desc()
-        ).limit(limit).all()
+        return (
+            self._base_query()
+            .filter(ScanResult.status == status)
+            .order_by(ScanResult.created_at.desc())
+            .limit(limit)
+            .all()
+        )
 
     def find_recent(
         self,
@@ -147,11 +154,13 @@ class ScanRepository(BaseRepository[ScanResult]):
         """
         cutoff_date = datetime.utcnow() - timedelta(days=max(1, days))
 
-        return self._base_query().filter(
-            ScanResult.created_at >= cutoff_date
-        ).order_by(
-            ScanResult.created_at.desc()
-        ).limit(limit).all()
+        return (
+            self._base_query()
+            .filter(ScanResult.created_at >= cutoff_date)
+            .order_by(ScanResult.created_at.desc())
+            .limit(limit)
+            .all()
+        )
 
     def find_with_critical_vulns(self, limit: int = 50) -> list[ScanResult]:
         """
@@ -163,12 +172,16 @@ class ScanRepository(BaseRepository[ScanResult]):
         Returns:
             List of scans with critical vulnerabilities
         """
-        return self._base_query().filter(
-            ScanResult.critical_count > 0
-        ).order_by(
-            ScanResult.critical_count.desc(),
-            ScanResult.created_at.desc(),
-        ).limit(limit).all()
+        return (
+            self._base_query()
+            .filter(ScanResult.critical_count > 0)
+            .order_by(
+                ScanResult.critical_count.desc(),
+                ScanResult.created_at.desc(),
+            )
+            .limit(limit)
+            .all()
+        )
 
     def get_scan_with_vulnerabilities(
         self,
@@ -186,12 +199,14 @@ class ScanRepository(BaseRepository[ScanResult]):
         if isinstance(scan_id, str):
             scan_id = UUID(scan_id)
 
-        return self._base_query().filter(
-            ScanResult.id == scan_id
-        ).options(
-            joinedload(ScanResult.vulnerabilities)
-            .joinedload(ScanVulnerability.vulnerability)
-        ).first()
+        return (
+            self._base_query()
+            .filter(ScanResult.id == scan_id)
+            .options(
+                joinedload(ScanResult.vulnerabilities).joinedload(ScanVulnerability.vulnerability)
+            )
+            .first()
+        )
 
     def update_status(
         self,
@@ -302,21 +317,21 @@ class ScanRepository(BaseRepository[ScanResult]):
         if isinstance(scan_id, str):
             scan_id = UUID(scan_id)
 
-        results = db.session.query(
-            ScanVulnerability.package_name,
-            ScanVulnerability.installed_version,
-            ScanVulnerability.fixed_version,
-            Vulnerability.cve_id,
-            Vulnerability.severity,
-            Vulnerability.cvss_score,
-            Vulnerability.description,
-        ).join(
-            Vulnerability
-        ).filter(
-            ScanVulnerability.scan_id == scan_id
-        ).order_by(
-            Vulnerability.cvss_score.desc().nullslast()
-        ).all()
+        results = (
+            db.session.query(
+                ScanVulnerability.package_name,
+                ScanVulnerability.installed_version,
+                ScanVulnerability.fixed_version,
+                Vulnerability.cve_id,
+                Vulnerability.severity,
+                Vulnerability.cvss_score,
+                Vulnerability.description,
+            )
+            .join(Vulnerability)
+            .filter(ScanVulnerability.scan_id == scan_id)
+            .order_by(Vulnerability.cvss_score.desc().nullslast())
+            .all()
+        )
 
         return [
             {
@@ -385,10 +400,11 @@ class ScanRepository(BaseRepository[ScanResult]):
         total_scans = self.count()
 
         # Status breakdown
-        status_counts = db.session.query(
-            ScanResult.status,
-            func.count(ScanResult.id).label("count")
-        ).group_by(ScanResult.status).all()
+        status_counts = (
+            db.session.query(ScanResult.status, func.count(ScanResult.id).label("count"))
+            .group_by(ScanResult.status)
+            .all()
+        )
 
         status_breakdown = {row.status: row.count for row in status_counts}
 
@@ -428,20 +444,22 @@ class ScanRepository(BaseRepository[ScanResult]):
         deleted_count = 0
 
         # Get all projects
-        projects = db.session.query(
-            ScanResult.project_name
-        ).distinct().all()
+        projects = db.session.query(ScanResult.project_name).distinct().all()
 
         for (project_name,) in projects:
             # Get scans to potentially delete
-            old_scans = self._base_query().filter(
-                and_(
-                    ScanResult.project_name == project_name,
-                    ScanResult.created_at < cutoff_date,
+            old_scans = (
+                self._base_query()
+                .filter(
+                    and_(
+                        ScanResult.project_name == project_name,
+                        ScanResult.created_at < cutoff_date,
+                    )
                 )
-            ).order_by(
-                ScanResult.created_at.desc()
-            ).offset(keep_latest_per_project).all()
+                .order_by(ScanResult.created_at.desc())
+                .offset(keep_latest_per_project)
+                .all()
+            )
 
             for scan in old_scans:
                 self.delete(scan.id)

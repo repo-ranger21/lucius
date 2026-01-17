@@ -41,18 +41,18 @@ class SecretFinding:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'secret_type': self.secret_type,
-            'severity': self.severity,
-            'file_path': self.file_path,
-            'line_number': self.line_number,
-            'matched_string': self.matched_string,
-            'pattern_name': self.pattern_name,
-            'entropy': self.entropy,
-            'commit_hash': self.commit_hash,
-            'commit_author': self.commit_author,
-            'commit_date': self.commit_date,
-            'remediation': self.remediation,
-            'confidence': self.confidence,
+            "secret_type": self.secret_type,
+            "severity": self.severity,
+            "file_path": self.file_path,
+            "line_number": self.line_number,
+            "matched_string": self.matched_string,
+            "pattern_name": self.pattern_name,
+            "entropy": self.entropy,
+            "commit_hash": self.commit_hash,
+            "commit_author": self.commit_author,
+            "commit_date": self.commit_date,
+            "remediation": self.remediation,
+            "confidence": self.confidence,
         }
 
 
@@ -70,34 +70,34 @@ class SecretScanResult:
 
     @property
     def critical_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'CRITICAL')
+        return sum(1 for f in self.findings if f.severity == "CRITICAL")
 
     @property
     def high_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'HIGH')
+        return sum(1 for f in self.findings if f.severity == "HIGH")
 
     @property
     def medium_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'MEDIUM')
+        return sum(1 for f in self.findings if f.severity == "MEDIUM")
 
     @property
     def low_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'LOW')
+        return sum(1 for f in self.findings if f.severity == "LOW")
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'target_path': self.target_path,
-            'scan_type': self.scan_type,
-            'scan_time': self.scan_time.isoformat(),
-            'findings': [f.to_dict() for f in self.findings],
-            'files_scanned': self.files_scanned,
-            'commits_scanned': self.commits_scanned,
-            'critical_count': self.critical_count,
-            'high_count': self.high_count,
-            'medium_count': self.medium_count,
-            'low_count': self.low_count,
-            'total_findings': len(self.findings),
-            'metadata': self.metadata,
+            "target_path": self.target_path,
+            "scan_type": self.scan_type,
+            "scan_time": self.scan_time.isoformat(),
+            "findings": [f.to_dict() for f in self.findings],
+            "files_scanned": self.files_scanned,
+            "commits_scanned": self.commits_scanned,
+            "critical_count": self.critical_count,
+            "high_count": self.high_count,
+            "medium_count": self.medium_count,
+            "low_count": self.low_count,
+            "total_findings": len(self.findings),
+            "metadata": self.metadata,
         }
 
 
@@ -113,218 +113,248 @@ class SecretsScanner:
     SECRET_PATTERNS = [
         # AWS
         {
-            'name': 'AWS Access Key ID',
-            'pattern': r'(?i)(?:aws|amazon)(?:_|-)?(?:access|account)?(?:_|-)?key(?:_|-)?(?:id)?["\']?\s*[:=]\s*["\']?(AKIA[0-9A-Z]{16})',
-            'type': 'aws_access_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Rotate AWS credentials immediately. Use AWS IAM roles or AWS Secrets Manager.',
+            "name": "AWS Access Key ID",
+            "pattern": r'(?i)(?:aws|amazon)(?:_|-)?(?:access|account)?(?:_|-)?key(?:_|-)?(?:id)?["\']?\s*[:=]\s*["\']?(AKIA[0-9A-Z]{16})',
+            "type": "aws_access_key",
+            "severity": "CRITICAL",
+            "remediation": "Rotate AWS credentials immediately. Use AWS IAM roles or AWS Secrets Manager.",
         },
         {
-            'name': 'AWS Secret Access Key',
-            'pattern': r'(?i)(?:aws|amazon)(?:_|-)?secret(?:_|-)?(?:access)?(?:_|-)?key["\']?\s*[:=]\s*["\']?([A-Za-z0-9/+=]{40})',
-            'type': 'aws_secret_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Rotate AWS credentials immediately. Use AWS Secrets Manager.',
+            "name": "AWS Secret Access Key",
+            "pattern": r'(?i)(?:aws|amazon)(?:_|-)?secret(?:_|-)?(?:access)?(?:_|-)?key["\']?\s*[:=]\s*["\']?([A-Za-z0-9/+=]{40})',
+            "type": "aws_secret_key",
+            "severity": "CRITICAL",
+            "remediation": "Rotate AWS credentials immediately. Use AWS Secrets Manager.",
         },
         # GitHub
         {
-            'name': 'GitHub Personal Access Token',
-            'pattern': r'ghp_[0-9a-zA-Z]{36}',
-            'type': 'github_token',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke GitHub token and create new one. Use GitHub Secrets for CI/CD.',
+            "name": "GitHub Personal Access Token",
+            "pattern": r"ghp_[0-9a-zA-Z]{36}",
+            "type": "github_token",
+            "severity": "CRITICAL",
+            "remediation": "Revoke GitHub token and create new one. Use GitHub Secrets for CI/CD.",
         },
         {
-            'name': 'GitHub OAuth Token',
-            'pattern': r'gho_[0-9a-zA-Z]{36}',
-            'type': 'github_oauth',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke GitHub OAuth token immediately.',
+            "name": "GitHub OAuth Token",
+            "pattern": r"gho_[0-9a-zA-Z]{36}",
+            "type": "github_oauth",
+            "severity": "CRITICAL",
+            "remediation": "Revoke GitHub OAuth token immediately.",
         },
         {
-            'name': 'GitHub App Token',
-            'pattern': r'(?:ghu|ghs)_[0-9a-zA-Z]{36}',
-            'type': 'github_app_token',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke GitHub App token immediately.',
+            "name": "GitHub App Token",
+            "pattern": r"(?:ghu|ghs)_[0-9a-zA-Z]{36}",
+            "type": "github_app_token",
+            "severity": "CRITICAL",
+            "remediation": "Revoke GitHub App token immediately.",
         },
         # Google Cloud
         {
-            'name': 'Google API Key',
-            'pattern': r'AIza[0-9A-Za-z_-]{35}',
-            'type': 'google_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Revoke API key. Use Google Cloud Secret Manager.',
+            "name": "Google API Key",
+            "pattern": r"AIza[0-9A-Za-z_-]{35}",
+            "type": "google_api_key",
+            "severity": "HIGH",
+            "remediation": "Revoke API key. Use Google Cloud Secret Manager.",
         },
         {
-            'name': 'Google OAuth Token',
-            'pattern': r'ya29\.[0-9A-Za-z_-]+',
-            'type': 'google_oauth',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke OAuth token immediately.',
+            "name": "Google OAuth Token",
+            "pattern": r"ya29\.[0-9A-Za-z_-]+",
+            "type": "google_oauth",
+            "severity": "CRITICAL",
+            "remediation": "Revoke OAuth token immediately.",
         },
         # Slack
         {
-            'name': 'Slack Token',
-            'pattern': r'xox[baprs]-[0-9]{10,13}-[0-9]{10,13}-[0-9a-zA-Z]{24,32}',
-            'type': 'slack_token',
-            'severity': 'HIGH',
-            'remediation': 'Revoke Slack token. Use environment variables.',
+            "name": "Slack Token",
+            "pattern": r"xox[baprs]-[0-9]{10,13}-[0-9]{10,13}-[0-9a-zA-Z]{24,32}",
+            "type": "slack_token",
+            "severity": "HIGH",
+            "remediation": "Revoke Slack token. Use environment variables.",
         },
         {
-            'name': 'Slack Webhook',
-            'pattern': r'https://hooks\.slack\.com/services/T[a-zA-Z0-9_]+/B[a-zA-Z0-9_]+/[a-zA-Z0-9_]+',
-            'type': 'slack_webhook',
-            'severity': 'MEDIUM',
-            'remediation': 'Rotate Slack webhook URL.',
+            "name": "Slack Webhook",
+            "pattern": r"https://hooks\.slack\.com/services/T[a-zA-Z0-9_]+/B[a-zA-Z0-9_]+/[a-zA-Z0-9_]+",
+            "type": "slack_webhook",
+            "severity": "MEDIUM",
+            "remediation": "Rotate Slack webhook URL.",
         },
         # Generic Secrets
         {
-            'name': 'Generic API Key',
-            'pattern': r'(?i)(?:api|app)(?:_|-)?key["\']?\s*[:=]\s*["\']?([0-9a-zA-Z_-]{32,})',
-            'type': 'generic_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Remove hardcoded API key. Use environment variables or secret management.',
+            "name": "Generic API Key",
+            "pattern": r'(?i)(?:api|app)(?:_|-)?key["\']?\s*[:=]\s*["\']?([0-9a-zA-Z_-]{32,})',
+            "type": "generic_api_key",
+            "severity": "HIGH",
+            "remediation": "Remove hardcoded API key. Use environment variables or secret management.",
         },
         {
-            'name': 'Generic Secret',
-            'pattern': r'(?i)(?:secret|password|passwd|pwd|token)["\']?\s*[:=]\s*["\']?([^\s"\']{12,})',
-            'type': 'generic_secret',
-            'severity': 'HIGH',
-            'remediation': 'Remove hardcoded secret. Use environment variables.',
+            "name": "Generic Secret",
+            "pattern": r'(?i)(?:secret|password|passwd|pwd|token)["\']?\s*[:=]\s*["\']?([^\s"\']{12,})',
+            "type": "generic_secret",
+            "severity": "HIGH",
+            "remediation": "Remove hardcoded secret. Use environment variables.",
         },
         # Private Keys
         {
-            'name': 'RSA Private Key',
-            'pattern': r'-----BEGIN RSA PRIVATE KEY-----',
-            'type': 'rsa_private_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Remove private key. Never commit private keys to version control.',
+            "name": "RSA Private Key",
+            "pattern": r"-----BEGIN RSA PRIVATE KEY-----",
+            "type": "rsa_private_key",
+            "severity": "CRITICAL",
+            "remediation": "Remove private key. Never commit private keys to version control.",
         },
         {
-            'name': 'SSH Private Key',
-            'pattern': r'-----BEGIN OPENSSH PRIVATE KEY-----',
-            'type': 'ssh_private_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Remove SSH private key immediately.',
+            "name": "SSH Private Key",
+            "pattern": r"-----BEGIN OPENSSH PRIVATE KEY-----",
+            "type": "ssh_private_key",
+            "severity": "CRITICAL",
+            "remediation": "Remove SSH private key immediately.",
         },
         {
-            'name': 'PGP Private Key',
-            'pattern': r'-----BEGIN PGP PRIVATE KEY BLOCK-----',
-            'type': 'pgp_private_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Remove PGP private key immediately.',
+            "name": "PGP Private Key",
+            "pattern": r"-----BEGIN PGP PRIVATE KEY BLOCK-----",
+            "type": "pgp_private_key",
+            "severity": "CRITICAL",
+            "remediation": "Remove PGP private key immediately.",
         },
         # Database
         {
-            'name': 'Database Connection String',
-            'pattern': r'(?i)(?:mysql|postgres|postgresql|mongodb)://[^\s"\']+',
-            'type': 'database_connection',
-            'severity': 'HIGH',
-            'remediation': 'Remove connection string. Use environment variables.',
+            "name": "Database Connection String",
+            "pattern": r'(?i)(?:mysql|postgres|postgresql|mongodb)://[^\s"\']+',
+            "type": "database_connection",
+            "severity": "HIGH",
+            "remediation": "Remove connection string. Use environment variables.",
         },
         {
-            'name': 'JDBC Connection String',
-            'pattern': r'jdbc:[^\s"\']+',
-            'type': 'jdbc_connection',
-            'severity': 'MEDIUM',
-            'remediation': 'Remove JDBC connection string. Use configuration files.',
+            "name": "JDBC Connection String",
+            "pattern": r'jdbc:[^\s"\']+',
+            "type": "jdbc_connection",
+            "severity": "MEDIUM",
+            "remediation": "Remove JDBC connection string. Use configuration files.",
         },
         # JWT
         {
-            'name': 'JSON Web Token',
-            'pattern': r'eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+',
-            'type': 'jwt_token',
-            'severity': 'MEDIUM',
-            'remediation': 'Remove hardcoded JWT. Use secure token storage.',
+            "name": "JSON Web Token",
+            "pattern": r"eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
+            "type": "jwt_token",
+            "severity": "MEDIUM",
+            "remediation": "Remove hardcoded JWT. Use secure token storage.",
         },
         # Stripe
         {
-            'name': 'Stripe API Key',
-            'pattern': r'(?:sk|pk)_(?:live|test)_[0-9a-zA-Z]{24,}',
-            'type': 'stripe_api_key',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke Stripe key immediately. Use environment variables.',
+            "name": "Stripe API Key",
+            "pattern": r"(?:sk|pk)_(?:live|test)_[0-9a-zA-Z]{24,}",
+            "type": "stripe_api_key",
+            "severity": "CRITICAL",
+            "remediation": "Revoke Stripe key immediately. Use environment variables.",
         },
         # Twilio
         {
-            'name': 'Twilio API Key',
-            'pattern': r'SK[0-9a-fA-F]{32}',
-            'type': 'twilio_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Revoke Twilio API key. Use environment variables.',
+            "name": "Twilio API Key",
+            "pattern": r"SK[0-9a-fA-F]{32}",
+            "type": "twilio_api_key",
+            "severity": "HIGH",
+            "remediation": "Revoke Twilio API key. Use environment variables.",
         },
         # SendGrid
         {
-            'name': 'SendGrid API Key',
-            'pattern': r'SG\.[0-9A-Za-z_-]{22}\.[0-9A-Za-z_-]{43}',
-            'type': 'sendgrid_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Revoke SendGrid API key. Use environment variables.',
+            "name": "SendGrid API Key",
+            "pattern": r"SG\.[0-9A-Za-z_-]{22}\.[0-9A-Za-z_-]{43}",
+            "type": "sendgrid_api_key",
+            "severity": "HIGH",
+            "remediation": "Revoke SendGrid API key. Use environment variables.",
         },
         # MailChimp
         {
-            'name': 'MailChimp API Key',
-            'pattern': r'[0-9a-f]{32}-us[0-9]{1,2}',
-            'type': 'mailchimp_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Revoke MailChimp API key immediately.',
+            "name": "MailChimp API Key",
+            "pattern": r"[0-9a-f]{32}-us[0-9]{1,2}",
+            "type": "mailchimp_api_key",
+            "severity": "HIGH",
+            "remediation": "Revoke MailChimp API key immediately.",
         },
         # PayPal
         {
-            'name': 'PayPal Braintree Access Token',
-            'pattern': r'access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}',
-            'type': 'paypal_token',
-            'severity': 'CRITICAL',
-            'remediation': 'Revoke PayPal token immediately.',
+            "name": "PayPal Braintree Access Token",
+            "pattern": r"access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}",
+            "type": "paypal_token",
+            "severity": "CRITICAL",
+            "remediation": "Revoke PayPal token immediately.",
         },
         # Cloudinary
         {
-            'name': 'Cloudinary URL',
-            'pattern': r'cloudinary://[0-9]+:[0-9A-Za-z_-]+@[a-z]+',
-            'type': 'cloudinary_url',
-            'severity': 'MEDIUM',
-            'remediation': 'Remove Cloudinary URL. Use environment variables.',
+            "name": "Cloudinary URL",
+            "pattern": r"cloudinary://[0-9]+:[0-9A-Za-z_-]+@[a-z]+",
+            "type": "cloudinary_url",
+            "severity": "MEDIUM",
+            "remediation": "Remove Cloudinary URL. Use environment variables.",
         },
         # Firebase
         {
-            'name': 'Firebase URL',
-            'pattern': r'.*firebaseio\.com',
-            'type': 'firebase_url',
-            'severity': 'LOW',
-            'remediation': 'Review Firebase security rules.',
+            "name": "Firebase URL",
+            "pattern": r".*firebaseio\.com",
+            "type": "firebase_url",
+            "severity": "LOW",
+            "remediation": "Review Firebase security rules.",
         },
         # Heroku
         {
-            'name': 'Heroku API Key',
-            'pattern': r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
-            'type': 'heroku_api_key',
-            'severity': 'HIGH',
-            'remediation': 'Revoke Heroku API key. Use Heroku CLI for authentication.',
+            "name": "Heroku API Key",
+            "pattern": r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            "type": "heroku_api_key",
+            "severity": "HIGH",
+            "remediation": "Revoke Heroku API key. Use Heroku CLI for authentication.",
         },
     ]
 
     # Files to ignore
     IGNORE_PATTERNS = [
-        r'\.git/',
-        r'node_modules/',
-        r'vendor/',
-        r'\.pyc$',
-        r'\.lock$',
-        r'\.min\.js$',
-        r'\.map$',
-        r'package-lock\.json$',
-        r'yarn\.lock$',
-        r'poetry\.lock$',
+        r"\.git/",
+        r"node_modules/",
+        r"vendor/",
+        r"\.pyc$",
+        r"\.lock$",
+        r"\.min\.js$",
+        r"\.map$",
+        r"package-lock\.json$",
+        r"yarn\.lock$",
+        r"poetry\.lock$",
     ]
 
     # File extensions to scan
     SCANNABLE_EXTENSIONS = {
-        '.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.go', '.rb', '.php',
-        '.sh', '.bash', '.zsh', '.env', '.yml', '.yaml', '.json', '.xml',
-        '.config', '.conf', '.ini', '.properties', '.tf', '.tfvars', '.rs',
-        '.c', '.cpp', '.h', '.cs', '.swift', '.kt', '.scala', '.sql', '.txt',
-        '.md', '.rst',
+        ".py",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".java",
+        ".go",
+        ".rb",
+        ".php",
+        ".sh",
+        ".bash",
+        ".zsh",
+        ".env",
+        ".yml",
+        ".yaml",
+        ".json",
+        ".xml",
+        ".config",
+        ".conf",
+        ".ini",
+        ".properties",
+        ".tf",
+        ".tfvars",
+        ".rs",
+        ".c",
+        ".cpp",
+        ".h",
+        ".cs",
+        ".swift",
+        ".kt",
+        ".scala",
+        ".sql",
+        ".txt",
+        ".md",
+        ".rst",
     }
 
     def __init__(
@@ -348,10 +378,12 @@ class SecretsScanner:
         # Compile patterns
         self.compiled_patterns = []
         for pattern_def in self.SECRET_PATTERNS:
-            self.compiled_patterns.append({
-                **pattern_def,
-                'regex': re.compile(pattern_def['pattern']),
-            })
+            self.compiled_patterns.append(
+                {
+                    **pattern_def,
+                    "regex": re.compile(pattern_def["pattern"]),
+                }
+            )
 
     async def scan_path(
         self,
@@ -382,7 +414,7 @@ class SecretsScanner:
             await self._scan_directory(target_path, result)
 
         # Scan git history if enabled
-        if self.scan_git_history and (target_path / '.git').exists():
+        if self.scan_git_history and (target_path / ".git").exists():
             await self._scan_git_history(target_path, result)
 
         return result
@@ -393,7 +425,7 @@ class SecretsScanner:
         result: SecretScanResult,
     ) -> None:
         """Scan directory recursively"""
-        for file_path in directory.rglob('*'):
+        for file_path in directory.rglob("*"):
             if file_path.is_file():
                 # Check if file should be scanned
                 if self._should_scan_file(file_path):
@@ -411,7 +443,7 @@ class SecretsScanner:
                 return False
 
         # Check extension
-        return file_path.suffix in self.SCANNABLE_EXTENSIONS or file_path.name.startswith('.')
+        return file_path.suffix in self.SCANNABLE_EXTENSIONS or file_path.name.startswith(".")
 
     async def _scan_file(
         self,
@@ -420,15 +452,15 @@ class SecretsScanner:
     ) -> None:
         """Scan individual file for secrets"""
         try:
-            content = file_path.read_text(errors='ignore')
-            lines = content.split('\n')
+            content = file_path.read_text(errors="ignore")
+            lines = content.split("\n")
 
             result.files_scanned += 1
 
             for line_num, line in enumerate(lines, start=1):
                 # Check against all patterns
                 for pattern_def in self.compiled_patterns:
-                    matches = pattern_def['regex'].finditer(line)
+                    matches = pattern_def["regex"].finditer(line)
 
                     for match in matches:
                         # Extract the secret value (first group if exists, otherwise full match)
@@ -441,15 +473,15 @@ class SecretsScanner:
                         redacted = self._redact_secret(secret_value)
 
                         finding = SecretFinding(
-                            secret_type=pattern_def['type'],
-                            severity=pattern_def['severity'],
+                            secret_type=pattern_def["type"],
+                            severity=pattern_def["severity"],
                             file_path=str(file_path),
                             line_number=line_num,
                             matched_string=redacted,
-                            pattern_name=pattern_def['name'],
+                            pattern_name=pattern_def["name"],
                             entropy=entropy,
-                            remediation=pattern_def['remediation'],
-                            confidence='HIGH',
+                            remediation=pattern_def["remediation"],
+                            confidence="HIGH",
                         )
 
                         result.findings.append(finding)
@@ -463,7 +495,7 @@ class SecretsScanner:
                 result.findings.extend(high_entropy_findings)
 
         except Exception as e:
-            result.metadata[f'scan_error_{file_path}'] = str(e)
+            result.metadata[f"scan_error_{file_path}"] = str(e)
 
     def _calculate_entropy(
         self,
@@ -513,7 +545,7 @@ class SecretsScanner:
                 # Skip if it matches known patterns (to avoid duplicates)
                 is_duplicate = False
                 for pattern_def in self.compiled_patterns:
-                    if pattern_def['regex'].search(value):
+                    if pattern_def["regex"].search(value):
                         is_duplicate = True
                         break
 
@@ -521,15 +553,15 @@ class SecretsScanner:
                     redacted = self._redact_secret(value)
 
                     finding = SecretFinding(
-                        secret_type='high_entropy_string',
-                        severity='MEDIUM',
+                        secret_type="high_entropy_string",
+                        severity="MEDIUM",
                         file_path=file_path,
                         line_number=line_number,
                         matched_string=redacted,
-                        pattern_name='High Entropy String',
+                        pattern_name="High Entropy String",
                         entropy=entropy,
-                        remediation='Review this high-entropy string. It may be a secret.',
-                        confidence='MEDIUM',
+                        remediation="Review this high-entropy string. It may be a secret.",
+                        confidence="MEDIUM",
                     )
 
                     findings.append(finding)
@@ -542,7 +574,7 @@ class SecretsScanner:
     ) -> str:
         """Redact secret for safe display"""
         if len(secret) <= 8:
-            return '*' * len(secret)
+            return "*" * len(secret)
 
         # Show first 4 and last 4 characters
         return f"{secret[:4]}{'*' * (len(secret) - 8)}{secret[-4:]}"
@@ -556,11 +588,11 @@ class SecretsScanner:
         try:
             # Get git log
             process = await asyncio.create_subprocess_exec(
-                'git',
-                'log',
-                '--all',
-                '--pretty=format:%H|%an|%ai',
-                f'-{self.max_commits}',
+                "git",
+                "log",
+                "--all",
+                "--pretty=format:%H|%an|%ai",
+                f"-{self.max_commits}",
                 cwd=repo_path,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
@@ -568,14 +600,14 @@ class SecretsScanner:
             stdout, stderr = await process.communicate()
 
             if process.returncode != 0:
-                result.metadata['git_history_error'] = stderr.decode()
+                result.metadata["git_history_error"] = stderr.decode()
                 return
 
-            commits = stdout.decode().strip().split('\n')
+            commits = stdout.decode().strip().split("\n")
             result.commits_scanned = len(commits)
 
             for commit_line in commits:
-                parts = commit_line.split('|')
+                parts = commit_line.split("|")
                 if len(parts) < 3:
                     continue
 
@@ -583,8 +615,8 @@ class SecretsScanner:
 
                 # Get commit diff
                 diff_process = await asyncio.create_subprocess_exec(
-                    'git',
-                    'show',
+                    "git",
+                    "show",
                     commit_hash,
                     cwd=repo_path,
                     stdout=asyncio.subprocess.PIPE,
@@ -593,39 +625,41 @@ class SecretsScanner:
                 diff_stdout, _ = await diff_process.communicate()
 
                 if diff_process.returncode == 0:
-                    diff_content = diff_stdout.decode(errors='ignore')
-                    lines = diff_content.split('\n')
+                    diff_content = diff_stdout.decode(errors="ignore")
+                    lines = diff_content.split("\n")
 
                     for line_num, line in enumerate(lines, start=1):
                         # Only scan added lines
-                        if line.startswith('+') and not line.startswith('+++'):
+                        if line.startswith("+") and not line.startswith("+++"):
                             for pattern_def in self.compiled_patterns:
-                                matches = pattern_def['regex'].finditer(line)
+                                matches = pattern_def["regex"].finditer(line)
 
                                 for match in matches:
-                                    secret_value = match.group(1) if match.groups() else match.group(0)
+                                    secret_value = (
+                                        match.group(1) if match.groups() else match.group(0)
+                                    )
                                     entropy = self._calculate_entropy(secret_value)
                                     redacted = self._redact_secret(secret_value)
 
                                     finding = SecretFinding(
-                                        secret_type=pattern_def['type'],
-                                        severity=pattern_def['severity'],
-                                        file_path='git_history',
+                                        secret_type=pattern_def["type"],
+                                        severity=pattern_def["severity"],
+                                        file_path="git_history",
                                         line_number=line_num,
                                         matched_string=redacted,
-                                        pattern_name=pattern_def['name'],
+                                        pattern_name=pattern_def["name"],
                                         entropy=entropy,
                                         commit_hash=commit_hash[:8],
                                         commit_author=author,
                                         commit_date=date,
                                         remediation=f"{pattern_def['remediation']} Found in commit history.",
-                                        confidence='HIGH',
+                                        confidence="HIGH",
                                     )
 
                                     result.findings.append(finding)
 
         except Exception as e:
-            result.metadata['git_history_scan_error'] = str(e)
+            result.metadata["git_history_scan_error"] = str(e)
 
 
 async def scan_for_secrets(
@@ -655,7 +689,7 @@ if __name__ == "__main__":
             sys.exit(1)
 
         scan_path = sys.argv[1]
-        scan_git = '--git-history' in sys.argv
+        scan_git = "--git-history" in sys.argv
 
         print(f"Scanning for secrets in: {scan_path}")
         if scan_git:
@@ -677,7 +711,7 @@ if __name__ == "__main__":
             print("\n=== Discovered Secrets ===")
             for finding in sorted(
                 result.findings,
-                key=lambda f: {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3}.get(f.severity, 4)
+                key=lambda f: {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}.get(f.severity, 4),
             )[:20]:
                 print(f"\n[{finding.severity}] {finding.pattern_name}")
                 print(f"  File: {finding.file_path}:{finding.line_number}")

@@ -47,18 +47,18 @@ class IaCFinding:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'resource_type': self.resource_type,
-            'resource_name': self.resource_name,
-            'severity': self.severity,
-            'issue_type': self.issue_type,
-            'file_path': self.file_path,
-            'line_number': self.line_number,
-            'description': self.description,
-            'remediation': self.remediation,
-            'cis_control': self.cis_control,
-            'compliance_frameworks': self.compliance_frameworks,
-            'impact': self.impact,
-            'risk_score': self.risk_score,
+            "resource_type": self.resource_type,
+            "resource_name": self.resource_name,
+            "severity": self.severity,
+            "issue_type": self.issue_type,
+            "file_path": self.file_path,
+            "line_number": self.line_number,
+            "description": self.description,
+            "remediation": self.remediation,
+            "cis_control": self.cis_control,
+            "compliance_frameworks": self.compliance_frameworks,
+            "impact": self.impact,
+            "risk_score": self.risk_score,
         }
 
 
@@ -75,33 +75,33 @@ class IaCScanResult:
 
     @property
     def critical_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'CRITICAL')
+        return sum(1 for f in self.findings if f.severity == "CRITICAL")
 
     @property
     def high_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'HIGH')
+        return sum(1 for f in self.findings if f.severity == "HIGH")
 
     @property
     def medium_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'MEDIUM')
+        return sum(1 for f in self.findings if f.severity == "MEDIUM")
 
     @property
     def low_count(self) -> int:
-        return sum(1 for f in self.findings if f.severity == 'LOW')
+        return sum(1 for f in self.findings if f.severity == "LOW")
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'target_path': self.target_path,
-            'scan_time': self.scan_time.isoformat(),
-            'findings': [f.to_dict() for f in self.findings],
-            'files_scanned': self.files_scanned,
-            'resources_analyzed': self.resources_analyzed,
-            'critical_count': self.critical_count,
-            'high_count': self.high_count,
-            'medium_count': self.medium_count,
-            'low_count': self.low_count,
-            'total_findings': len(self.findings),
-            'metadata': self.metadata,
+            "target_path": self.target_path,
+            "scan_time": self.scan_time.isoformat(),
+            "findings": [f.to_dict() for f in self.findings],
+            "files_scanned": self.files_scanned,
+            "resources_analyzed": self.resources_analyzed,
+            "critical_count": self.critical_count,
+            "high_count": self.high_count,
+            "medium_count": self.medium_count,
+            "low_count": self.low_count,
+            "total_findings": len(self.findings),
+            "metadata": self.metadata,
         }
 
 
@@ -115,103 +115,104 @@ class IaCScanner:
     # Terraform security checks
     TERRAFORM_CHECKS = [
         {
-            'resource': 'aws_s3_bucket',
-            'check': lambda r: r.get('acl') == 'public-read' or r.get('acl') == 'public-read-write',
-            'severity': 'CRITICAL',
-            'issue': 'Public S3 Bucket',
-            'description': 'S3 bucket is publicly accessible',
-            'remediation': 'Set acl to "private" and use bucket policies for access control',
-            'cis': 'CIS AWS 2.1.5',
-            'compliance': ['PCI-DSS', 'HIPAA', 'SOC2'],
+            "resource": "aws_s3_bucket",
+            "check": lambda r: r.get("acl") == "public-read" or r.get("acl") == "public-read-write",
+            "severity": "CRITICAL",
+            "issue": "Public S3 Bucket",
+            "description": "S3 bucket is publicly accessible",
+            "remediation": 'Set acl to "private" and use bucket policies for access control',
+            "cis": "CIS AWS 2.1.5",
+            "compliance": ["PCI-DSS", "HIPAA", "SOC2"],
         },
         {
-            'resource': 'aws_security_group',
-            'check': lambda r: any(
-                ingress.get('cidr_blocks') == ['0.0.0.0/0'] and ingress.get('from_port') in [22, 3389]
-                for ingress in r.get('ingress', [])
+            "resource": "aws_security_group",
+            "check": lambda r: any(
+                ingress.get("cidr_blocks") == ["0.0.0.0/0"]
+                and ingress.get("from_port") in [22, 3389]
+                for ingress in r.get("ingress", [])
             ),
-            'severity': 'CRITICAL',
-            'issue': 'Open SSH/RDP to Internet',
-            'description': 'Security group allows SSH/RDP access from anywhere',
-            'remediation': 'Restrict SSH/RDP access to specific IP addresses',
-            'cis': 'CIS AWS 5.2',
-            'compliance': ['PCI-DSS', 'NIST', 'SOC2'],
+            "severity": "CRITICAL",
+            "issue": "Open SSH/RDP to Internet",
+            "description": "Security group allows SSH/RDP access from anywhere",
+            "remediation": "Restrict SSH/RDP access to specific IP addresses",
+            "cis": "CIS AWS 5.2",
+            "compliance": ["PCI-DSS", "NIST", "SOC2"],
         },
         {
-            'resource': 'aws_instance',
-            'check': lambda r: not r.get('monitoring'),
-            'severity': 'MEDIUM',
-            'issue': 'EC2 Monitoring Disabled',
-            'description': 'EC2 instance does not have detailed monitoring enabled',
-            'remediation': 'Enable monitoring = true for better visibility',
-            'cis': 'CIS AWS 4.4',
-            'compliance': ['SOC2'],
+            "resource": "aws_instance",
+            "check": lambda r: not r.get("monitoring"),
+            "severity": "MEDIUM",
+            "issue": "EC2 Monitoring Disabled",
+            "description": "EC2 instance does not have detailed monitoring enabled",
+            "remediation": "Enable monitoring = true for better visibility",
+            "cis": "CIS AWS 4.4",
+            "compliance": ["SOC2"],
         },
         {
-            'resource': 'aws_db_instance',
-            'check': lambda r: not r.get('storage_encrypted', False),
-            'severity': 'HIGH',
-            'issue': 'Unencrypted RDS Storage',
-            'description': 'RDS database storage is not encrypted',
-            'remediation': 'Enable storage_encrypted = true',
-            'cis': 'CIS AWS 2.3.1',
-            'compliance': ['PCI-DSS', 'HIPAA'],
+            "resource": "aws_db_instance",
+            "check": lambda r: not r.get("storage_encrypted", False),
+            "severity": "HIGH",
+            "issue": "Unencrypted RDS Storage",
+            "description": "RDS database storage is not encrypted",
+            "remediation": "Enable storage_encrypted = true",
+            "cis": "CIS AWS 2.3.1",
+            "compliance": ["PCI-DSS", "HIPAA"],
         },
         {
-            'resource': 'aws_ebs_volume',
-            'check': lambda r: not r.get('encrypted', False),
-            'severity': 'HIGH',
-            'issue': 'Unencrypted EBS Volume',
-            'description': 'EBS volume is not encrypted',
-            'remediation': 'Enable encrypted = true',
-            'cis': 'CIS AWS 2.2.1',
-            'compliance': ['PCI-DSS', 'HIPAA'],
+            "resource": "aws_ebs_volume",
+            "check": lambda r: not r.get("encrypted", False),
+            "severity": "HIGH",
+            "issue": "Unencrypted EBS Volume",
+            "description": "EBS volume is not encrypted",
+            "remediation": "Enable encrypted = true",
+            "cis": "CIS AWS 2.2.1",
+            "compliance": ["PCI-DSS", "HIPAA"],
         },
     ]
 
     # Kubernetes security checks
     KUBERNETES_CHECKS = [
         {
-            'kind': 'Pod',
-            'check': lambda spec: spec.get('securityContext', {}).get('runAsNonRoot') is not True,
-            'severity': 'HIGH',
-            'issue': 'Container Running as Root',
-            'description': 'Pod/container runs as root user',
-            'remediation': 'Set securityContext.runAsNonRoot = true',
+            "kind": "Pod",
+            "check": lambda spec: spec.get("securityContext", {}).get("runAsNonRoot") is not True,
+            "severity": "HIGH",
+            "issue": "Container Running as Root",
+            "description": "Pod/container runs as root user",
+            "remediation": "Set securityContext.runAsNonRoot = true",
         },
         {
-            'kind': 'Pod',
-            'check': lambda spec: spec.get('securityContext', {}).get('privileged') is True,
-            'severity': 'CRITICAL',
-            'issue': 'Privileged Container',
-            'description': 'Container runs in privileged mode',
-            'remediation': 'Remove privileged = true unless absolutely necessary',
+            "kind": "Pod",
+            "check": lambda spec: spec.get("securityContext", {}).get("privileged") is True,
+            "severity": "CRITICAL",
+            "issue": "Privileged Container",
+            "description": "Container runs in privileged mode",
+            "remediation": "Remove privileged = true unless absolutely necessary",
         },
         {
-            'kind': 'Service',
-            'check': lambda spec: spec.get('type') == 'LoadBalancer',
-            'severity': 'MEDIUM',
-            'issue': 'LoadBalancer Service',
-            'description': 'Service exposed via LoadBalancer (publicly accessible)',
-            'remediation': 'Use ClusterIP or NodePort with ingress controller',
+            "kind": "Service",
+            "check": lambda spec: spec.get("type") == "LoadBalancer",
+            "severity": "MEDIUM",
+            "issue": "LoadBalancer Service",
+            "description": "Service exposed via LoadBalancer (publicly accessible)",
+            "remediation": "Use ClusterIP or NodePort with ingress controller",
         },
     ]
 
     # Docker Compose security checks
     DOCKER_COMPOSE_CHECKS = [
         {
-            'check_type': 'privileged',
-            'severity': 'CRITICAL',
-            'issue': 'Privileged Container',
-            'description': 'Service runs in privileged mode',
-            'remediation': 'Remove privileged: true',
+            "check_type": "privileged",
+            "severity": "CRITICAL",
+            "issue": "Privileged Container",
+            "description": "Service runs in privileged mode",
+            "remediation": "Remove privileged: true",
         },
         {
-            'check_type': 'no_network_mode',
-            'severity': 'HIGH',
-            'issue': 'Host Network Mode',
-            'description': 'Service uses host network mode',
-            'remediation': 'Use bridge or custom networks instead',
+            "check_type": "no_network_mode",
+            "severity": "HIGH",
+            "issue": "Host Network Mode",
+            "description": "Service uses host network mode",
+            "remediation": "Use bridge or custom networks instead",
         },
     ]
 
@@ -255,24 +256,24 @@ class IaCScanner:
     ) -> None:
         """Scan directory recursively"""
         # Terraform files
-        for tf_file in directory.rglob('*.tf'):
+        for tf_file in directory.rglob("*.tf"):
             await self._scan_file(tf_file, result)
 
         # Kubernetes manifests
-        for k8s_file in directory.rglob('*.yaml'):
-            if 'k8s' in str(k8s_file) or 'kubernetes' in str(k8s_file):
+        for k8s_file in directory.rglob("*.yaml"):
+            if "k8s" in str(k8s_file) or "kubernetes" in str(k8s_file):
                 await self._scan_file(k8s_file, result)
 
-        for k8s_file in directory.rglob('*.yml'):
-            if 'k8s' in str(k8s_file) or 'kubernetes' in str(k8s_file):
+        for k8s_file in directory.rglob("*.yml"):
+            if "k8s" in str(k8s_file) or "kubernetes" in str(k8s_file):
                 await self._scan_file(k8s_file, result)
 
         # CloudFormation
-        for cfn_file in directory.rglob('*.template'):
+        for cfn_file in directory.rglob("*.template"):
             await self._scan_file(cfn_file, result)
 
         # Docker Compose
-        for compose_file in directory.glob('docker-compose*.{yml,yaml}'):
+        for compose_file in directory.glob("docker-compose*.{yml,yaml}"):
             await self._scan_file(compose_file, result)
 
     async def _scan_file(
@@ -284,20 +285,20 @@ class IaCScanner:
         try:
             result.files_scanned += 1
 
-            if file_path.suffix == '.tf':
+            if file_path.suffix == ".tf":
                 await self._scan_terraform(file_path, result)
-            elif file_path.suffix in ['.yaml', '.yml']:
+            elif file_path.suffix in [".yaml", ".yml"]:
                 content = file_path.read_text()
                 # Try to detect file type
-                if 'apiVersion' in content and 'kind' in content:
+                if "apiVersion" in content and "kind" in content:
                     await self._scan_kubernetes(file_path, result)
-                elif 'services:' in content and 'version:' in content:
+                elif "services:" in content and "version:" in content:
                     await self._scan_docker_compose(file_path, result)
-            elif file_path.suffix == '.template' or 'cloudformation' in file_path.name.lower():
+            elif file_path.suffix == ".template" or "cloudformation" in file_path.name.lower():
                 await self._scan_cloudformation(file_path, result)
 
         except Exception as e:
-            result.metadata[f'scan_error_{file_path}'] = str(e)
+            result.metadata[f"scan_error_{file_path}"] = str(e)
 
     async def _scan_terraform(
         self,
@@ -313,24 +314,24 @@ class IaCScanner:
                 result.resources_analyzed += 1
 
                 for check in self.TERRAFORM_CHECKS:
-                    if resource['type'] == check['resource']:
-                        if check['check'](resource.get('config', {})):
+                    if resource["type"] == check["resource"]:
+                        if check["check"](resource.get("config", {})):
                             finding = IaCFinding(
-                                resource_type=resource['type'],
-                                resource_name=resource.get('name', 'unknown'),
-                                severity=check['severity'],
-                                issue_type=check['issue'],
+                                resource_type=resource["type"],
+                                resource_name=resource.get("name", "unknown"),
+                                severity=check["severity"],
+                                issue_type=check["issue"],
                                 file_path=str(file_path),
-                                line_number=resource.get('line_number'),
-                                description=check['description'],
-                                remediation=check['remediation'],
-                                cis_control=check.get('cis'),
-                                compliance_frameworks=check.get('compliance', []),
+                                line_number=resource.get("line_number"),
+                                description=check["description"],
+                                remediation=check["remediation"],
+                                cis_control=check.get("cis"),
+                                compliance_frameworks=check.get("compliance", []),
                             )
                             result.findings.append(finding)
 
         except Exception as e:
-            result.metadata[f'terraform_error_{file_path}'] = str(e)
+            result.metadata[f"terraform_error_{file_path}"] = str(e)
 
     async def _scan_kubernetes(
         self,
@@ -347,44 +348,44 @@ class IaCScanner:
                     continue
 
                 result.resources_analyzed += 1
-                kind = manifest.get('kind', '')
-                name = manifest.get('metadata', {}).get('name', 'unknown')
+                kind = manifest.get("kind", "")
+                name = manifest.get("metadata", {}).get("name", "unknown")
 
                 for check in self.KUBERNETES_CHECKS:
-                    if kind == check['kind']:
-                        spec = manifest.get('spec', {})
+                    if kind == check["kind"]:
+                        spec = manifest.get("spec", {})
 
                         # For Pods, also check containers
-                        if kind == 'Pod':
-                            for container in spec.get('containers', []):
-                                container_spec = container.get('securityContext', {})
-                                if check['check'](container_spec):
+                        if kind == "Pod":
+                            for container in spec.get("containers", []):
+                                container_spec = container.get("securityContext", {})
+                                if check["check"](container_spec):
                                     finding = IaCFinding(
                                         resource_type=kind,
                                         resource_name=f"{name}/{container.get('name', 'unknown')}",
-                                        severity=check['severity'],
-                                        issue_type=check['issue'],
+                                        severity=check["severity"],
+                                        issue_type=check["issue"],
                                         file_path=str(file_path),
                                         line_number=None,
-                                        description=check['description'],
-                                        remediation=check['remediation'],
+                                        description=check["description"],
+                                        remediation=check["remediation"],
                                     )
                                     result.findings.append(finding)
-                        elif check['check'](spec):
+                        elif check["check"](spec):
                             finding = IaCFinding(
                                 resource_type=kind,
                                 resource_name=name,
-                                severity=check['severity'],
-                                issue_type=check['issue'],
+                                severity=check["severity"],
+                                issue_type=check["issue"],
                                 file_path=str(file_path),
                                 line_number=None,
-                                description=check['description'],
-                                remediation=check['remediation'],
+                                description=check["description"],
+                                remediation=check["remediation"],
                             )
                             result.findings.append(finding)
 
         except Exception as e:
-            result.metadata[f'kubernetes_error_{file_path}'] = str(e)
+            result.metadata[f"kubernetes_error_{file_path}"] = str(e)
 
     async def _scan_docker_compose(
         self,
@@ -394,58 +395,61 @@ class IaCScanner:
         """Scan Docker Compose file"""
         try:
             content = yaml.safe_load(file_path.read_text())
-            services = content.get('services', {})
+            services = content.get("services", {})
 
             for service_name, service_config in services.items():
                 result.resources_analyzed += 1
 
                 # Check for privileged mode
-                if service_config.get('privileged') is True:
+                if service_config.get("privileged") is True:
                     finding = IaCFinding(
-                        resource_type='docker-compose-service',
+                        resource_type="docker-compose-service",
                         resource_name=service_name,
-                        severity='CRITICAL',
-                        issue_type='Privileged Container',
+                        severity="CRITICAL",
+                        issue_type="Privileged Container",
                         file_path=str(file_path),
                         line_number=None,
-                        description='Service runs in privileged mode',
-                        remediation='Remove privileged: true',
+                        description="Service runs in privileged mode",
+                        remediation="Remove privileged: true",
                     )
                     result.findings.append(finding)
 
                 # Check for host network mode
-                if service_config.get('network_mode') == 'host':
+                if service_config.get("network_mode") == "host":
                     finding = IaCFinding(
-                        resource_type='docker-compose-service',
+                        resource_type="docker-compose-service",
                         resource_name=service_name,
-                        severity='HIGH',
-                        issue_type='Host Network Mode',
+                        severity="HIGH",
+                        issue_type="Host Network Mode",
                         file_path=str(file_path),
                         line_number=None,
-                        description='Service uses host network mode',
-                        remediation='Use bridge or custom networks',
+                        description="Service uses host network mode",
+                        remediation="Use bridge or custom networks",
                     )
                     result.findings.append(finding)
 
                 # Check for volume mounts to sensitive paths
-                volumes = service_config.get('volumes', [])
+                volumes = service_config.get("volumes", [])
                 for volume in volumes:
                     if isinstance(volume, str):
-                        if any(sensitive in volume for sensitive in ['/etc', '/var/run/docker.sock', '/root']):
+                        if any(
+                            sensitive in volume
+                            for sensitive in ["/etc", "/var/run/docker.sock", "/root"]
+                        ):
                             finding = IaCFinding(
-                                resource_type='docker-compose-service',
+                                resource_type="docker-compose-service",
                                 resource_name=service_name,
-                                severity='HIGH',
-                                issue_type='Sensitive Volume Mount',
+                                severity="HIGH",
+                                issue_type="Sensitive Volume Mount",
                                 file_path=str(file_path),
                                 line_number=None,
-                                description=f'Service mounts sensitive path: {volume}',
-                                remediation='Avoid mounting sensitive system paths',
+                                description=f"Service mounts sensitive path: {volume}",
+                                remediation="Avoid mounting sensitive system paths",
                             )
                             result.findings.append(finding)
 
         except Exception as e:
-            result.metadata[f'docker_compose_error_{file_path}'] = str(e)
+            result.metadata[f"docker_compose_error_{file_path}"] = str(e)
 
     async def _scan_cloudformation(
         self,
@@ -463,47 +467,47 @@ class IaCScanner:
                 # Try YAML
                 template = yaml.safe_load(content)
 
-            resources = template.get('Resources', {})
+            resources = template.get("Resources", {})
 
             for resource_name, resource_config in resources.items():
                 result.resources_analyzed += 1
-                resource_type = resource_config.get('Type', '')
-                properties = resource_config.get('Properties', {})
+                resource_type = resource_config.get("Type", "")
+                properties = resource_config.get("Properties", {})
 
                 # Check S3 buckets
-                if resource_type == 'AWS::S3::Bucket':
-                    if properties.get('AccessControl') in ['PublicRead', 'PublicReadWrite']:
+                if resource_type == "AWS::S3::Bucket":
+                    if properties.get("AccessControl") in ["PublicRead", "PublicReadWrite"]:
                         finding = IaCFinding(
                             resource_type=resource_type,
                             resource_name=resource_name,
-                            severity='CRITICAL',
-                            issue_type='Public S3 Bucket',
+                            severity="CRITICAL",
+                            issue_type="Public S3 Bucket",
                             file_path=str(file_path),
                             line_number=None,
-                            description='S3 bucket is publicly accessible',
-                            remediation='Set AccessControl to Private',
-                            compliance_frameworks=['PCI-DSS', 'HIPAA'],
+                            description="S3 bucket is publicly accessible",
+                            remediation="Set AccessControl to Private",
+                            compliance_frameworks=["PCI-DSS", "HIPAA"],
                         )
                         result.findings.append(finding)
 
                 # Check RDS encryption
-                if resource_type == 'AWS::RDS::DBInstance':
-                    if not properties.get('StorageEncrypted', False):
+                if resource_type == "AWS::RDS::DBInstance":
+                    if not properties.get("StorageEncrypted", False):
                         finding = IaCFinding(
                             resource_type=resource_type,
                             resource_name=resource_name,
-                            severity='HIGH',
-                            issue_type='Unencrypted RDS Storage',
+                            severity="HIGH",
+                            issue_type="Unencrypted RDS Storage",
                             file_path=str(file_path),
                             line_number=None,
-                            description='RDS database storage is not encrypted',
-                            remediation='Enable StorageEncrypted',
-                            compliance_frameworks=['PCI-DSS', 'HIPAA'],
+                            description="RDS database storage is not encrypted",
+                            remediation="Enable StorageEncrypted",
+                            compliance_frameworks=["PCI-DSS", "HIPAA"],
                         )
                         result.findings.append(finding)
 
         except Exception as e:
-            result.metadata[f'cloudformation_error_{file_path}'] = str(e)
+            result.metadata[f"cloudformation_error_{file_path}"] = str(e)
 
 
 class TerraformParser:
@@ -523,19 +527,21 @@ class TerraformParser:
 
             # Parse basic config
             config = {}
-            for line in resource_body.split('\n'):
+            for line in resource_body.split("\n"):
                 line = line.strip()
-                if '=' in line:
-                    key, value = line.split('=', 1)
+                if "=" in line:
+                    key, value = line.split("=", 1)
                     key = key.strip()
                     value = value.strip().strip('"')
                     config[key] = value
 
-            resources.append({
-                'type': resource_type,
-                'name': resource_name,
-                'config': config,
-            })
+            resources.append(
+                {
+                    "type": resource_type,
+                    "name": resource_name,
+                    "config": config,
+                }
+            )
 
         return resources
 
@@ -600,7 +606,7 @@ if __name__ == "__main__":
             print("\n=== Security Issues ===")
             for finding in sorted(
                 result.findings,
-                key=lambda f: {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3}.get(f.severity, 4)
+                key=lambda f: {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}.get(f.severity, 4),
             )[:20]:
                 print(f"\n[{finding.severity}] {finding.issue_type}")
                 print(f"  Resource: {finding.resource_type} / {finding.resource_name}")

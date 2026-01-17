@@ -20,10 +20,7 @@ def create_test_app() -> Flask:
     """Create Flask app configured for testing."""
     app = Flask(__name__)
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "TEST_DATABASE_URL",
-        "sqlite:///:memory:"
-    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ECHO"] = False
 
@@ -265,7 +262,7 @@ def malformed_cve_ids() -> list[str]:
         "CVE-2021",
         "cve-2021-44228",  # lowercase
         "CVE_2021_44228",  # underscores
-        "CVE-202144228",   # no second dash
+        "CVE-202144228",  # no second dash
         "NOTACVE-2021-44228",
         "CVE-99999-99999999999",  # extremely long
         "CVE-2021-44228; DROP TABLE vulnerabilities;--",  # SQL injection attempt

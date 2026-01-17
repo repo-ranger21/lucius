@@ -112,9 +112,7 @@ class TestScanRepositoryFiltering:
         results = repo.find_by_project("test-project")
 
         assert len(results) >= 1
-        assert all(
-            "test-project" in s.project_name for s in results
-        )
+        assert all("test-project" in s.project_name for s in results)
 
     def test_find_by_project_with_tenant_prefix(self, db_session, tenant_id, sample_scan):
         """Find by project handles tenant prefix."""
@@ -202,9 +200,7 @@ class TestScanRepositoryVulnerabilityAssociations:
 
         assert result is None
 
-    def test_get_scan_with_vulnerabilities(
-        self, db_session, tenant_id, sample_scan_with_vulns
-    ):
+    def test_get_scan_with_vulnerabilities(self, db_session, tenant_id, sample_scan_with_vulns):
         """Get scan with eagerly loaded vulnerabilities."""
         repo = ScanRepository(tenant_id=tenant_id)
 

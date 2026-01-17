@@ -92,9 +92,7 @@ class ScanResult(db.Model):
     """Scan result model representing vulnerability scan outputs."""
 
     __tablename__ = "scan_results"
-    __table_args__ = (
-        Index("ix_scan_results_tenant_project", "tenant_id", "project_name"),
-    )
+    __table_args__ = (Index("ix_scan_results_tenant_project", "tenant_id", "project_name"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(String(100), nullable=False, index=True)
