@@ -52,21 +52,21 @@ class ThreatIntelligence:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'cve_id': self.cve_id,
-            'nvd_data': self.nvd_data,
-            'exploits': self.exploits,
-            'known_exploited': self.known_exploited,
-            'exploitation_status': self.exploitation_status,
-            'mitre_techniques': self.mitre_techniques,
-            'threat_actors': self.threat_actors,
-            'malware_families': self.malware_families,
-            'attack_patterns': self.attack_patterns,
-            'epss_score': self.epss_score,
-            'kev_date_added': self.kev_date_added,
-            'shodan_results': self.shodan_results,
-            'github_advisories': self.github_advisories,
-            'references': self.references,
-            'enrichment_timestamp': self.enrichment_timestamp.isoformat(),
+            "cve_id": self.cve_id,
+            "nvd_data": self.nvd_data,
+            "exploits": self.exploits,
+            "known_exploited": self.known_exploited,
+            "exploitation_status": self.exploitation_status,
+            "mitre_techniques": self.mitre_techniques,
+            "threat_actors": self.threat_actors,
+            "malware_families": self.malware_families,
+            "attack_patterns": self.attack_patterns,
+            "epss_score": self.epss_score,
+            "kev_date_added": self.kev_date_added,
+            "shodan_results": self.shodan_results,
+            "github_advisories": self.github_advisories,
+            "references": self.references,
+            "enrichment_timestamp": self.enrichment_timestamp.isoformat(),
         }
 
 
@@ -79,7 +79,9 @@ class ThreatIntelligenceAggregator:
     """
 
     NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    CISA_KEV_URL = (
+        "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    )
     EXPLOIT_DB_URL = "https://www.exploit-db.com/search"
     GITHUB_ADVISORY_URL = "https://api.github.com/advisories"
     EPSS_API_URL = "https://api.first.org/data/v1/epss"
@@ -124,10 +126,10 @@ class ThreatIntelligenceAggregator:
             ssl=certifi.where(),
             limit=50,
         )
-        headers = {'User-Agent': 'Lucius-ThreatIntel/1.0'}
+        headers = {"User-Agent": "Lucius-ThreatIntel/1.0"}
 
         if self.github_token:
-            headers['Authorization'] = f'token {self.github_token}'
+            headers["Authorization"] = f"token {self.github_token}"
 
         self.session = aiohttp.ClientSession(
             connector=connector,
@@ -191,11 +193,11 @@ class ThreatIntelligenceAggregator:
     ) -> None:
         """Fetch NVD data for CVE"""
         try:
-            params = {'cveId': cve_id}
+            params = {"cveId": cve_id}
             headers = {}
 
             if self.nvd_api_key:
-                headers['apiKey'] = self.nvd_api_key
+                headers["apiKey"] = self.nvd_api_key
 
             async with self.session.get(
                 self.NVD_API_URL,
@@ -204,23 +206,23 @@ class ThreatIntelligenceAggregator:
             ) as response:
                 if response.status == 200:
                     data = await response.json()
-                    vulnerabilities = data.get('vulnerabilities', [])
+                    vulnerabilities = data.get("vulnerabilities", [])
 
                     if vulnerabilities:
-                        cve_item = vulnerabilities[0].get('cve', {})
+                        cve_item = vulnerabilities[0].get("cve", {})
                         intel.nvd_data = {
-                            'published': cve_item.get('published'),
-                            'lastModified': cve_item.get('lastModified'),
-                            'vulnStatus': cve_item.get('vulnStatus'),
-                            'descriptions': cve_item.get('descriptions', []),
-                            'metrics': cve_item.get('metrics', {}),
-                            'weaknesses': cve_item.get('weaknesses', []),
-                            'references': cve_item.get('references', []),
+                            "published": cve_item.get("published"),
+                            "lastModified": cve_item.get("lastModified"),
+                            "vulnStatus": cve_item.get("vulnStatus"),
+                            "descriptions": cve_item.get("descriptions", []),
+                            "metrics": cve_item.get("metrics", {}),
+                            "weaknesses": cve_item.get("weaknesses", []),
+                            "references": cve_item.get("references", []),
                         }
 
                         # Extract references
-                        for ref in cve_item.get('references', []):
-                            intel.references.append(ref.get('url', ''))
+                        for ref in cve_item.get("references", []):
+                            intel.references.append(ref.get("url", ""))
 
                 # Respect rate limits
                 await asyncio.sleep(0.6)  # ~100 requests per minute
@@ -237,8 +239,8 @@ class ThreatIntelligenceAggregator:
         try:
             # Refresh KEV cache if needed
             if not self.kev_cache or (
-                self.kev_cache_time and
-                datetime.utcnow() - self.kev_cache_time > timedelta(hours=24)
+                self.kev_cache_time
+                and datetime.utcnow() - self.kev_cache_time > timedelta(hours=24)
             ):
                 await self._refresh_kev_cache()
 
@@ -249,9 +251,9 @@ class ThreatIntelligenceAggregator:
                 async with self.session.get(self.CISA_KEV_URL) as response:
                     if response.status == 200:
                         data = await response.json()
-                        for vuln in data.get('vulnerabilities', []):
-                            if vuln.get('cveID') == cve_id:
-                                intel.kev_date_added = vuln.get('dateAdded')
+                        for vuln in data.get("vulnerabilities", []):
+                            if vuln.get("cveID") == cve_id:
+                                intel.kev_date_added = vuln.get("dateAdded")
                                 break
 
         except Exception as e:
@@ -264,9 +266,9 @@ class ThreatIntelligenceAggregator:
                 if response.status == 200:
                     data = await response.json()
                     self.kev_cache = {
-                        vuln.get('cveID')
-                        for vuln in data.get('vulnerabilities', [])
-                        if vuln.get('cveID')
+                        vuln.get("cveID")
+                        for vuln in data.get("vulnerabilities", [])
+                        if vuln.get("cveID")
                     }
                     self.kev_cache_time = datetime.utcnow()
         except Exception:
@@ -283,24 +285,29 @@ class ThreatIntelligenceAggregator:
             # For now, use a simple heuristic based on references
 
             if intel.nvd_data:
-                references = intel.nvd_data.get('references', [])
+                references = intel.nvd_data.get("references", [])
 
                 for ref in references:
-                    ref_url = ref.get('url', '').lower()
+                    ref_url = ref.get("url", "").lower()
 
                     # Check for exploit indicators in references
-                    if any(indicator in ref_url for indicator in [
-                        'exploit',
-                        'poc',
-                        'metasploit',
-                        'exploit-db',
-                        'packetstorm',
-                    ]):
-                        intel.exploits.append({
-                            'source': 'reference',
-                            'url': ref.get('url'),
-                            'type': 'public',
-                        })
+                    if any(
+                        indicator in ref_url
+                        for indicator in [
+                            "exploit",
+                            "poc",
+                            "metasploit",
+                            "exploit-db",
+                            "packetstorm",
+                        ]
+                    ):
+                        intel.exploits.append(
+                            {
+                                "source": "reference",
+                                "url": ref.get("url"),
+                                "type": "public",
+                            }
+                        )
 
             # In production, integrate with:
             # - Exploit-DB API
@@ -320,20 +327,22 @@ class ThreatIntelligenceAggregator:
         try:
             # GitHub Advisory Database API
             url = f"{self.GITHUB_ADVISORY_URL}"
-            params = {'cve_id': cve_id}
+            params = {"cve_id": cve_id}
 
             async with self.session.get(url, params=params) as response:
                 if response.status == 200:
                     advisories = await response.json()
 
                     for advisory in advisories:
-                        intel.github_advisories.append({
-                            'id': advisory.get('ghsa_id'),
-                            'summary': advisory.get('summary'),
-                            'severity': advisory.get('severity'),
-                            'published': advisory.get('published_at'),
-                            'updated': advisory.get('updated_at'),
-                        })
+                        intel.github_advisories.append(
+                            {
+                                "id": advisory.get("ghsa_id"),
+                                "summary": advisory.get("summary"),
+                                "severity": advisory.get("severity"),
+                                "published": advisory.get("published_at"),
+                                "updated": advisory.get("updated_at"),
+                            }
+                        )
 
         except Exception as e:
             print(f"Error fetching GitHub advisories: {e}")
@@ -352,9 +361,9 @@ class ThreatIntelligenceAggregator:
                     data = await response.json()
 
                     # Parse EPSS data
-                    epss_data = data.get('data', [])
+                    epss_data = data.get("data", [])
                     if epss_data:
-                        intel.epss_score = float(epss_data[0].get('epss', 0.0))
+                        intel.epss_score = float(epss_data[0].get("epss", 0.0))
 
         except Exception as e:
             print(f"Error fetching EPSS score: {e}")

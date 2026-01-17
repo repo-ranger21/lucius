@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class SeverityLevel(str, Enum):
     """Vulnerability severity levels."""
+
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -24,6 +25,7 @@ class SeverityLevel(str, Enum):
 
 class ScanStatus(str, Enum):
     """Scan execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"

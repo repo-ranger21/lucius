@@ -84,9 +84,7 @@ class BaseRepository(ABC, Generic[T]):
             if isinstance(entity_id, str):
                 entity_id = UUID(entity_id)
 
-            entity = self._base_query().filter(
-                self.model_class.id == entity_id
-            ).first()
+            entity = self._base_query().filter(self.model_class.id == entity_id).first()
 
             if entity:
                 self._logger.debug(
@@ -172,9 +170,7 @@ class BaseRepository(ABC, Generic[T]):
             if isinstance(entity_id, str):
                 entity_id = UUID(entity_id)
 
-            return self._base_query().filter(
-                self.model_class.id == entity_id
-            ).count() > 0
+            return self._base_query().filter(self.model_class.id == entity_id).count() > 0
 
         except ValueError:
             return False

@@ -115,6 +115,7 @@ class TestVulnerabilitySchemas:
 
     def test_vulnerability_response_from_orm(self):
         """Response schema can be created from ORM-like object."""
+
         # Create a mock object with attributes
         class MockVuln:
             id = uuid4()

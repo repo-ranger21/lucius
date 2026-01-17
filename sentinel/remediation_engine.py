@@ -68,21 +68,21 @@ class RemediationAction:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
-            'vulnerability_id': self.vulnerability_id,
-            'action_type': self.action_type,
-            'description': self.description,
-            'risk_level': self.risk_level.value,
-            'status': self.status.value,
-            'package_name': self.package_name,
-            'current_version': self.current_version,
-            'target_version': self.target_version,
-            'file_path': self.file_path,
-            'changes': self.changes,
-            'validation_results': self.validation_results,
-            'metadata': self.metadata,
-            'created_at': self.created_at.isoformat(),
-            'applied_at': self.applied_at.isoformat() if self.applied_at else None,
-            'error_message': self.error_message,
+            "vulnerability_id": self.vulnerability_id,
+            "action_type": self.action_type,
+            "description": self.description,
+            "risk_level": self.risk_level.value,
+            "status": self.status.value,
+            "package_name": self.package_name,
+            "current_version": self.current_version,
+            "target_version": self.target_version,
+            "file_path": self.file_path,
+            "changes": self.changes,
+            "validation_results": self.validation_results,
+            "metadata": self.metadata,
+            "created_at": self.created_at.isoformat(),
+            "applied_at": self.applied_at.isoformat() if self.applied_at else None,
+            "error_message": self.error_message,
         }
 
 
@@ -123,20 +123,20 @@ class RemediationPlan:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
-            'project_name': self.project_name,
-            'scan_id': self.scan_id,
-            'actions': [a.to_dict() for a in self.actions],
-            'created_at': self.created_at.isoformat(),
-            'auto_apply_enabled': self.auto_apply_enabled,
-            'require_tests': self.require_tests,
-            'create_pr': self.create_pr,
-            'pr_url': self.pr_url,
-            'branch_name': self.branch_name,
-            'total_actions': self.total_actions,
-            'low_risk_count': self.low_risk_count,
-            'medium_risk_count': self.medium_risk_count,
-            'high_risk_count': self.high_risk_count,
-            'applied_count': self.applied_count,
+            "project_name": self.project_name,
+            "scan_id": self.scan_id,
+            "actions": [a.to_dict() for a in self.actions],
+            "created_at": self.created_at.isoformat(),
+            "auto_apply_enabled": self.auto_apply_enabled,
+            "require_tests": self.require_tests,
+            "create_pr": self.create_pr,
+            "pr_url": self.pr_url,
+            "branch_name": self.branch_name,
+            "total_actions": self.total_actions,
+            "low_risk_count": self.low_risk_count,
+            "medium_risk_count": self.medium_risk_count,
+            "high_risk_count": self.high_risk_count,
+            "applied_count": self.applied_count,
         }
 
 
@@ -196,8 +196,8 @@ class RemediationEngine:
             RemediationPlan with all recommended actions
         """
         plan = RemediationPlan(
-            project_name=scan_result.get('project_name', 'unknown'),
-            scan_id=scan_result.get('id', ''),
+            project_name=scan_result.get("project_name", "unknown"),
+            scan_id=scan_result.get("id", ""),
             auto_apply_enabled=auto_apply,
             require_tests=self.require_tests,
         )
@@ -205,7 +205,7 @@ class RemediationEngine:
         # Group vulnerabilities by package
         package_vulns: dict[str, list[dict[str, Any]]] = {}
         for vuln in vulnerabilities:
-            pkg_name = vuln.get('package_name')
+            pkg_name = vuln.get("package_name")
             if pkg_name:
                 if pkg_name not in package_vulns:
                     package_vulns[pkg_name] = []
@@ -216,7 +216,7 @@ class RemediationEngine:
             action = await self._create_dependency_upgrade_action(
                 pkg_name,
                 pkg_vulns,
-                scan_result.get('package_manager', 'npm'),
+                scan_result.get("package_manager", "npm"),
             )
             if action:
                 plan.actions.append(action)
@@ -245,8 +245,8 @@ class RemediationEngine:
         current_version = None
 
         for vuln in vulnerabilities:
-            if vuln.get('fixed_version'):
-                fixed = vuln['fixed_version']
+            if vuln.get("fixed_version"):
+                fixed = vuln["fixed_version"]
                 if target_version is None:
                     target_version = fixed
                 else:
@@ -256,8 +256,8 @@ class RemediationEngine:
                     except Exception:
                         target_version = fixed
 
-            if not current_version and vuln.get('installed_version'):
-                current_version = vuln['installed_version']
+            if not current_version and vuln.get("installed_version"):
+                current_version = vuln["installed_version"]
 
         if not target_version:
             return None
@@ -269,8 +269,8 @@ class RemediationEngine:
         file_path = self._get_dependency_file(package_manager)
 
         action = RemediationAction(
-            vulnerability_id=vulnerabilities[0].get('cve_id', 'UNKNOWN'),
-            action_type='dependency_upgrade',
+            vulnerability_id=vulnerabilities[0].get("cve_id", "UNKNOWN"),
+            action_type="dependency_upgrade",
             description=f"Upgrade {package_name} from {current_version} to {target_version}",
             risk_level=risk_level,
             package_name=package_name,
@@ -278,9 +278,9 @@ class RemediationEngine:
             target_version=target_version,
             file_path=file_path,
             metadata={
-                'package_manager': package_manager,
-                'vulnerabilities_fixed': len(vulnerabilities),
-                'cve_ids': [v.get('cve_id') for v in vulnerabilities if v.get('cve_id')],
+                "package_manager": package_manager,
+                "vulnerabilities_fixed": len(vulnerabilities),
+                "cve_ids": [v.get("cve_id") for v in vulnerabilities if v.get("cve_id")],
             },
         )
 
@@ -309,8 +309,8 @@ class RemediationEngine:
             target = pkg_version.parse(target_version)
 
             # Parse semantic version
-            current_parts = str(current).split('.')
-            target_parts = str(target).split('.')
+            current_parts = str(current).split(".")
+            target_parts = str(target).split(".")
 
             if len(current_parts) >= 3 and len(target_parts) >= 3:
                 current_major = int(current_parts[0])
@@ -338,14 +338,14 @@ class RemediationEngine:
     def _get_dependency_file(self, package_manager: str) -> str:
         """Get the dependency file path for package manager"""
         files = {
-            'npm': 'package.json',
-            'pip': 'requirements.txt',
-            'composer': 'composer.json',
-            'maven': 'pom.xml',
-            'gradle': 'build.gradle',
-            'bundler': 'Gemfile',
+            "npm": "package.json",
+            "pip": "requirements.txt",
+            "composer": "composer.json",
+            "maven": "pom.xml",
+            "gradle": "build.gradle",
+            "bundler": "Gemfile",
         }
-        return files.get(package_manager, 'requirements.txt')
+        return files.get(package_manager, "requirements.txt")
 
     async def apply_remediation_plan(
         self,
@@ -367,26 +367,29 @@ class RemediationEngine:
 
         # Create remediation branch
         if plan.create_pr and not dry_run:
-            timestamp = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
+            timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
             branch_name = f"lucius/security-remediation-{timestamp}"
             plan.branch_name = branch_name
 
             try:
                 # Create and checkout new branch
-                self.repo.git.checkout('-b', branch_name)
+                self.repo.git.checkout("-b", branch_name)
             except Exception as e:
-                plan.metadata['branch_error'] = str(e)
+                plan.metadata["branch_error"] = str(e)
 
         # Apply each remediation action
         for action in plan.actions:
-            if action.risk_level.value <= self.auto_apply_threshold.value or plan.auto_apply_enabled:
+            if (
+                action.risk_level.value <= self.auto_apply_threshold.value
+                or plan.auto_apply_enabled
+            ):
                 try:
                     action.status = RemediationStatus.IN_PROGRESS
 
                     # Apply the remediation
-                    if action.action_type == 'dependency_upgrade':
+                    if action.action_type == "dependency_upgrade":
                         await self._apply_dependency_upgrade(action, dry_run)
-                    elif action.action_type == 'config_fix':
+                    elif action.action_type == "config_fix":
                         await self._apply_config_fix(action, dry_run)
 
                     # Run validation tests
@@ -395,11 +398,11 @@ class RemediationEngine:
                         validation_result = await self._validate_remediation(action)
                         action.validation_results = validation_result
 
-                        if validation_result.get('passed', False):
+                        if validation_result.get("passed", False):
                             action.status = RemediationStatus.VALIDATED
                         else:
                             action.status = RemediationStatus.FAILED
-                            action.error_message = validation_result.get('error', 'Tests failed')
+                            action.error_message = validation_result.get("error", "Tests failed")
                             continue
 
                     action.status = RemediationStatus.APPLIED
@@ -417,7 +420,7 @@ class RemediationEngine:
                     pr_url = await self._create_pull_request(plan)
                     plan.pr_url = pr_url
             except Exception as e:
-                plan.metadata['pr_error'] = str(e)
+                plan.metadata["pr_error"] = str(e)
 
         return plan
 
@@ -433,7 +436,7 @@ class RemediationEngine:
             action: RemediationAction with upgrade details
             dry_run: If True, simulate without making changes
         """
-        package_manager = action.metadata.get('package_manager', 'npm')
+        package_manager = action.metadata.get("package_manager", "npm")
         file_path = self.repo_path / action.file_path
 
         if not file_path.exists():
@@ -443,19 +446,19 @@ class RemediationEngine:
         content = file_path.read_text()
 
         # Update version based on package manager
-        if package_manager == 'npm':
+        if package_manager == "npm":
             updated_content = await self._update_npm_package(
                 content,
                 action.package_name,
                 action.target_version,
             )
-        elif package_manager == 'pip':
+        elif package_manager == "pip":
             updated_content = await self._update_pip_requirement(
                 content,
                 action.package_name,
                 action.target_version,
             )
-        elif package_manager == 'composer':
+        elif package_manager == "composer":
             updated_content = await self._update_composer_package(
                 content,
                 action.package_name,
@@ -465,13 +468,15 @@ class RemediationEngine:
             raise ValueError(f"Unsupported package manager: {package_manager}")
 
         # Record changes
-        action.changes.append({
-            'file': str(file_path),
-            'type': 'version_upgrade',
-            'package': action.package_name,
-            'from': action.current_version,
-            'to': action.target_version,
-        })
+        action.changes.append(
+            {
+                "file": str(file_path),
+                "type": "version_upgrade",
+                "package": action.package_name,
+                "from": action.current_version,
+                "to": action.target_version,
+            }
+        )
 
         # Write updated file
         if not dry_run:
@@ -488,12 +493,12 @@ class RemediationEngine:
             data = json.loads(content)
 
             # Update in dependencies
-            if 'dependencies' in data and package_name in data['dependencies']:
-                data['dependencies'][package_name] = f"^{target_version}"
+            if "dependencies" in data and package_name in data["dependencies"]:
+                data["dependencies"][package_name] = f"^{target_version}"
 
             # Update in devDependencies
-            if 'devDependencies' in data and package_name in data['devDependencies']:
-                data['devDependencies'][package_name] = f"^{target_version}"
+            if "devDependencies" in data and package_name in data["devDependencies"]:
+                data["devDependencies"][package_name] = f"^{target_version}"
 
             return json.dumps(data, indent=2)
 
@@ -510,17 +515,17 @@ class RemediationEngine:
         target_version: str,
     ) -> str:
         """Update pip requirement in requirements.txt"""
-        lines = content.split('\n')
+        lines = content.split("\n")
         updated_lines = []
 
         for line in lines:
             # Match package name at start of line
-            if re.match(rf'^{re.escape(package_name)}[=><\s]', line, re.IGNORECASE):
+            if re.match(rf"^{re.escape(package_name)}[=><\s]", line, re.IGNORECASE):
                 updated_lines.append(f"{package_name}=={target_version}")
             else:
                 updated_lines.append(line)
 
-        return '\n'.join(updated_lines)
+        return "\n".join(updated_lines)
 
     async def _update_composer_package(
         self,
@@ -533,12 +538,12 @@ class RemediationEngine:
             data = json.loads(content)
 
             # Update in require
-            if 'require' in data and package_name in data['require']:
-                data['require'][package_name] = f"^{target_version}"
+            if "require" in data and package_name in data["require"]:
+                data["require"][package_name] = f"^{target_version}"
 
             # Update in require-dev
-            if 'require-dev' in data and package_name in data['require-dev']:
-                data['require-dev'][package_name] = f"^{target_version}"
+            if "require-dev" in data and package_name in data["require-dev"]:
+                data["require-dev"][package_name] = f"^{target_version}"
 
             return json.dumps(data, indent=4)
 
@@ -577,22 +582,22 @@ class RemediationEngine:
             Validation results
         """
         result = {
-            'passed': False,
-            'tests_run': 0,
-            'tests_passed': 0,
-            'tests_failed': 0,
-            'error': None,
+            "passed": False,
+            "tests_run": 0,
+            "tests_passed": 0,
+            "tests_failed": 0,
+            "error": None,
         }
 
         try:
             # Try to run tests based on project type
-            package_manager = action.metadata.get('package_manager', 'npm')
+            package_manager = action.metadata.get("package_manager", "npm")
 
-            if package_manager == 'npm':
+            if package_manager == "npm":
                 # Run npm test
                 process = await asyncio.create_subprocess_exec(
-                    'npm',
-                    'test',
+                    "npm",
+                    "test",
                     cwd=self.repo_path,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
@@ -600,14 +605,14 @@ class RemediationEngine:
                 stdout, stderr = await process.communicate()
 
                 if process.returncode == 0:
-                    result['passed'] = True
+                    result["passed"] = True
                 else:
-                    result['error'] = stderr.decode()
+                    result["error"] = stderr.decode()
 
-            elif package_manager == 'pip':
+            elif package_manager == "pip":
                 # Run pytest
                 process = await asyncio.create_subprocess_exec(
-                    'pytest',
+                    "pytest",
                     cwd=self.repo_path,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
@@ -615,14 +620,14 @@ class RemediationEngine:
                 stdout, stderr = await process.communicate()
 
                 if process.returncode == 0:
-                    result['passed'] = True
+                    result["passed"] = True
                 else:
-                    result['error'] = stderr.decode()
+                    result["error"] = stderr.decode()
 
         except Exception as e:
-            result['error'] = str(e)
+            result["error"] = str(e)
             # If tests can't run, assume validation passed (non-blocking)
-            result['passed'] = True
+            result["passed"] = True
 
         return result
 
@@ -661,12 +666,12 @@ class RemediationEngine:
         upgrades = [a for a in plan.actions if a.status == RemediationStatus.APPLIED]
 
         for action in upgrades:
-            if action.action_type == 'dependency_upgrade':
+            if action.action_type == "dependency_upgrade":
                 lines.append(
                     f"- Upgrade {action.package_name} "
                     f"from {action.current_version} to {action.target_version}"
                 )
-                cve_ids = action.metadata.get('cve_ids', [])
+                cve_ids = action.metadata.get("cve_ids", [])
                 if cve_ids:
                     lines.append(f"  Fixes: {', '.join(cve_ids)}")
 
@@ -674,7 +679,7 @@ class RemediationEngine:
         lines.append(f"Scan ID: {plan.scan_id}")
         lines.append("Generated by Lucius Security Scanner")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     async def _create_pull_request(
         self,
@@ -694,7 +699,7 @@ class RemediationEngine:
 
         try:
             # Push branch to remote
-            origin = self.repo.remote('origin')
+            origin = self.repo.remote("origin")
             origin.push(plan.branch_name)
 
             # Note: Actual PR creation would require GitHub API integration
@@ -725,30 +730,34 @@ class RemediationEngine:
         for action in plan.actions:
             if action.status == RemediationStatus.APPLIED:
                 lines.append(f"- **{action.package_name}**: {action.description}")
-                cve_ids = action.metadata.get('cve_ids', [])
+                cve_ids = action.metadata.get("cve_ids", [])
                 if cve_ids:
                     lines.append(f"  - Fixes: {', '.join(cve_ids)}")
 
-        lines.extend([
-            "",
-            "### Validation",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "### Validation",
+                "",
+            ]
+        )
 
         if plan.require_tests:
             lines.append("✅ All tests passed")
         else:
             lines.append("⚠️ Tests were not run")
 
-        lines.extend([
-            "",
-            f"**Scan ID**: `{plan.scan_id}`",
-            "",
-            "---",
-            "*Generated automatically by Lucius Security Scanner*",
-        ])
+        lines.extend(
+            [
+                "",
+                f"**Scan ID**: `{plan.scan_id}`",
+                "",
+                "---",
+                "*Generated automatically by Lucius Security Scanner*",
+            ]
+        )
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     async def rollback_remediation(
         self,
@@ -765,7 +774,7 @@ class RemediationEngine:
 
         try:
             # Checkout original branch
-            self.repo.git.checkout(plan.metadata.get('original_branch', 'main'))
+            self.repo.git.checkout(plan.metadata.get("original_branch", "main"))
 
             # Delete remediation branch
             self.repo.delete_head(plan.branch_name, force=True)
