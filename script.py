@@ -40,6 +40,7 @@ except ImportError:
 
 try:
     import importlib.util
+
     SQLMAP_AVAILABLE = importlib.util.find_spec("sqlmap") is not None
 except ImportError:
     SQLMAP_AVAILABLE = False

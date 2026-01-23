@@ -205,3 +205,27 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Vulnerability findings and security research (DO NOT COMMIT)
+*findings*.json
+*evidence*.txt
+ROBINHOOD_*
+robinhood_*
+SUBMISSION_READY.md
+CONFIRMED_FINDINGS.md
+SCAN_HALT_NOTICE.md
+*_EVIDENCE_*.txt
+*_FINDINGS.md
+*_ASSESSMENT_*.md
+*_COMPLIANCE_*.md
+
+# Test results
+results.json
+test_results.json
+scan_results.json
+
+# Sensitive configuration
+.env.local
+*.key
+*.pem
+secrets.yml
