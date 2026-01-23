@@ -20,20 +20,12 @@ class TestDeadlineMonitor:
     @pytest.fixture
     def monitor(self, mock_session):
         """Create deadline monitor with mocked dependencies."""
-        with patch("operations.services.deadline_monitor.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__ = MagicMock(return_value=mock_session)
-            mock_get_db.return_value.__exit__ = MagicMock(return_value=None)
+        with patch("operations.services.deadline_monitor.config") as mock_config:
+            mock_config.scheduler.reminder_days_before = 7
 
-            with patch("operations.services.deadline_monitor.config") as mock_config:
-                mock_config.twilio_account_sid = "test_sid"
-                mock_config.twilio_auth_token = "test_token"
-                mock_config.twilio_phone_number = "+15551234567"
-                mock_config.alert_phone_number = "+15559876543"
-                mock_config.enable_sms_alerts = True
+            from operations.services.deadline_monitor import DeadlineMonitor
 
-                from operations.services.deadline_monitor import DeadlineMonitor
-
-                return DeadlineMonitor()
+            return DeadlineMonitor(mock_session)
 
     def test_check_grant_deadlines_none_approaching(self, monitor, mock_session):
         """Test when no deadlines are approaching."""

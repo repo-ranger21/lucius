@@ -14,18 +14,22 @@ class TestNVDClient:
     @pytest.fixture
     def client(self):
         """Create NVD client instance."""
-        return NVDClient(api_key="test-api-key")
+        return NVDClient()
 
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
-        client = NVDClient(api_key="test-key")
-        assert client.api_key == "test-key"
-        assert "apiKey" in client.session.headers
+        with patch("sentinel.nvd_client.config.nvd.api_key", "test-key"):
+            client = NVDClient()
+            headers = client._get_headers()
+            assert "apiKey" in headers
+            assert headers["apiKey"] == "test-key"
 
     def test_init_without_api_key(self):
         """Test client initialization without API key."""
-        client = NVDClient()
-        assert client.api_key is None
+        with patch("sentinel.nvd_client.config.nvd.api_key", None):
+            client = NVDClient()
+            headers = client._get_headers()
+            assert "apiKey" not in headers
 
     @patch("sentinel.nvd_client.requests.Session.get")
     def test_search_by_cpe(self, mock_get, client, sample_vulnerability):

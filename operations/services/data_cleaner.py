@@ -361,7 +361,11 @@ class DataCleaner:
 
             if phonenumbers.is_valid_number(phone):
                 return phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.E164)
+        except ImportError:
+            # phonenumbers library not available; fall back to basic digit cleaning
+            pass
         except Exception:
+            # Invalid phone number format or unexpected error; fall back to basic digit cleaning
             pass
 
         # Fallback: just extract digits

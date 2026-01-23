@@ -2,7 +2,7 @@
 
 from datetime import date, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -21,14 +21,9 @@ class TestGrantService:
     @pytest.fixture
     def grant_service(self, mock_session):
         """Create grant service with mocked session."""
-        with patch("operations.services.grant_service.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__ = MagicMock(return_value=mock_session)
-            mock_get_db.return_value.__exit__ = MagicMock(return_value=None)
+        from operations.services.grant_service import GrantService
 
-            from operations.services.grant_service import GrantService
-
-            service = GrantService()
-            return service
+        return GrantService(mock_session)
 
     def test_create_grant(self, grant_service, mock_session):
         """Test creating a new grant."""
