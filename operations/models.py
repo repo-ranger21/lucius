@@ -16,9 +16,13 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import DeclarativeBase, relationship
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for all database models."""
+
+    pass
 
 
 class Grant(Base):

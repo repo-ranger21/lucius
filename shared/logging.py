@@ -7,7 +7,7 @@ import sys
 import structlog
 
 
-def setup_logging(level: str = None) -> None:
+def setup_logging(level: str | None = None) -> None:
     """
     Set up structured logging for the application.
 
