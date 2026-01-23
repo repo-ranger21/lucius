@@ -14,7 +14,7 @@ def setup_logging(level: str | None = None) -> None:
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR)
     """
-    log_level = level or os.getenv("LOG_LEVEL", "INFO")
+    log_level: str = level if level is not None else (os.getenv("LOG_LEVEL") or "INFO")
 
     # Configure standard logging
     logging.basicConfig(

@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -23,7 +23,7 @@ class GrantRepository:
         """Get grant by ID."""
         if isinstance(grant_id, str):
             grant_id = UUID(grant_id)
-        return self.session.query(Grant).filter(Grant.id == grant_id).first()
+        return cast(Grant | None, self.session.query(Grant).filter(Grant.id == grant_id).first())
 
     def get_all(
         self,
@@ -39,7 +39,10 @@ class GrantRepository:
         if priority:
             query = query.filter(Grant.priority == priority)
 
-        return query.order_by(Grant.submission_deadline.asc().nullslast()).limit(limit).all()
+        return cast(
+            list[Grant],
+            query.order_by(Grant.submission_deadline.asc().nullslast()).limit(limit).all(),
+        )
 
     def get_by_deadline_range(
         self,
@@ -47,27 +50,30 @@ class GrantRepository:
         end_date: datetime,
     ) -> list[Grant]:
         """Get grants within deadline range."""
-        return (
-            self.session.query(Grant)
-            .filter(
-                Grant.submission_deadline >= start_date,
-                Grant.submission_deadline <= end_date,
-                Grant.status.notin_(["awarded", "rejected", "closed"]),
-            )
-            .order_by(Grant.submission_deadline.asc())
-            .all()
+        return cast(
+            list[Grant],
+            (
+                self.session.query(Grant)
+                .filter(
+                    Grant.submission_deadline >= start_date,
+                    Grant.submission_deadline <= end_date,
+                    Grant.status.notin_(["awarded", "rejected", "closed"]),
+                )
+                .order_by(Grant.submission_deadline.asc())
+                .all()
+            ),
         )
 
     def create(self, grant: Grant) -> Grant:
         """Create a new grant."""
         self.session.add(grant)
         self.session.flush()
-        return grant
+        return cast(Grant, grant)
 
     def update(self, grant: Grant) -> Grant:
         """Update a grant."""
         self.session.flush()
-        return grant
+        return cast(Grant, grant)
 
     def delete(self, grant: Grant) -> None:
         """Delete a grant."""
@@ -84,17 +90,23 @@ class MilestoneRepository:
         """Get milestone by ID."""
         if isinstance(milestone_id, str):
             milestone_id = UUID(milestone_id)
-        return self.session.query(GrantMilestone).filter(GrantMilestone.id == milestone_id).first()
+        return cast(
+            GrantMilestone | None,
+            self.session.query(GrantMilestone).filter(GrantMilestone.id == milestone_id).first(),
+        )
 
     def get_by_grant(self, grant_id: str | UUID) -> list[GrantMilestone]:
         """Get milestones for a grant."""
         if isinstance(grant_id, str):
             grant_id = UUID(grant_id)
-        return (
-            self.session.query(GrantMilestone)
-            .filter(GrantMilestone.grant_id == grant_id)
-            .order_by(GrantMilestone.due_date.asc())
-            .all()
+        return cast(
+            list[GrantMilestone],
+            (
+                self.session.query(GrantMilestone)
+                .filter(GrantMilestone.grant_id == grant_id)
+                .order_by(GrantMilestone.due_date.asc())
+                .all()
+            ),
         )
 
     def get_upcoming(self, days: int = 7) -> list[GrantMilestone]:
@@ -102,33 +114,36 @@ class MilestoneRepository:
         now = datetime.utcnow()
         end_date = now + timedelta(days=days)
 
-        return (
-            self.session.query(GrantMilestone)
-            .filter(
-                GrantMilestone.due_date >= now,
-                GrantMilestone.due_date <= end_date,
-                GrantMilestone.status != "completed",
-            )
-            .order_by(GrantMilestone.due_date.asc())
-            .all()
+        return cast(
+            list[GrantMilestone],
+            (
+                self.session.query(GrantMilestone)
+                .filter(
+                    GrantMilestone.due_date >= now,
+                    GrantMilestone.due_date <= end_date,
+                    GrantMilestone.status != "completed",
+                )
+                .order_by(GrantMilestone.due_date.asc())
+                .all()
+            ),
         )
 
     def create(self, milestone: GrantMilestone) -> GrantMilestone:
         """Create a new milestone."""
         self.session.add(milestone)
         self.session.flush()
-        return milestone
+        return cast(GrantMilestone, milestone)
 
     def update(self, milestone: GrantMilestone) -> GrantMilestone:
         """Update a milestone."""
         self.session.flush()
-        return milestone
+        return cast(GrantMilestone, milestone)
 
 
 class GrantService:
     """Service layer for grant management."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session) -> None:
         self.session = session
         self.grant_repo = GrantRepository(session)
         self.milestone_repo = MilestoneRepository(session)
@@ -247,7 +262,7 @@ class GrantService:
         """Get grant pipeline summary."""
         all_grants = self.grant_repo.get_all(limit=1000)
 
-        by_status = {}
+        by_status: dict[str, int] = {}
         total_amount = Decimal("0")
         awarded_amount = Decimal("0")
 

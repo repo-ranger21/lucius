@@ -12,6 +12,8 @@ Provides REST API endpoints for advanced scanning capabilities:
 - Automated remediation
 """
 
+from typing import Any, Dict, Tuple
+
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from werkzeug.exceptions import BadRequest
@@ -104,7 +106,7 @@ class WebScanResource(Resource):
 
     @api.doc("scan_website")
     @api.expect(web_scan_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Perform web application security scan"""
         try:
             data = request.json
@@ -152,7 +154,7 @@ class ContainerScanResource(Resource):
 
     @api.doc("scan_container")
     @api.expect(container_scan_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Scan container image for vulnerabilities"""
         try:
             data = request.json
@@ -195,7 +197,7 @@ class SecretsScanResource(Resource):
 
     @api.doc("scan_secrets")
     @api.expect(secrets_scan_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Scan for exposed secrets and credentials"""
         try:
             data = request.json
@@ -238,7 +240,7 @@ class SASTScanResource(Resource):
 
     @api.doc("analyze_code")
     @api.expect(sast_scan_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Perform static code analysis"""
         try:
             data = request.json
@@ -275,7 +277,7 @@ class IaCScanResource(Resource):
 
     @api.doc("scan_iac")
     @api.expect(iac_scan_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Scan IaC files for security issues"""
         try:
             data = request.json
@@ -311,7 +313,7 @@ class ThreatIntelResource(Resource):
     """Threat intelligence enrichment"""
 
     @api.doc("enrich_cve")
-    def get(self, cve_id):
+    def get(self, cve_id: str) -> Tuple[Dict[str, Any], int]:
         """Enrich CVE with threat intelligence"""
         try:
             # In production, use actual aggregator
@@ -338,7 +340,7 @@ class BulkThreatIntelResource(Resource):
     """Bulk threat intelligence enrichment"""
 
     @api.doc("enrich_bulk")
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Dict[str, Any]], int]:
         """Enrich multiple CVEs with threat intelligence"""
         try:
             data = request.json
@@ -370,7 +372,7 @@ class ExploitPredictionResource(Resource):
     """ML-based exploit prediction"""
 
     @api.doc("predict_exploitation")
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Predict exploit likelihood"""
         try:
             data = request.json
@@ -407,7 +409,7 @@ class RemediationPlanResource(Resource):
     """Automated remediation planning"""
 
     @api.doc("create_remediation_plan")
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Create automated remediation plan"""
         try:
             data = request.json
@@ -445,7 +447,7 @@ class RemediationApplyResource(Resource):
 
     @api.doc("apply_remediation")
     @api.expect(remediation_request)
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Apply remediation plan"""
         try:
             data = request.json
@@ -486,7 +488,7 @@ class ReachabilityResource(Resource):
     """Vulnerability reachability analysis"""
 
     @api.doc("analyze_reachability")
-    def post(self):
+    def post(self) -> Tuple[Dict[str, Any], int]:
         """Analyze vulnerability reachability"""
         try:
             data = request.json

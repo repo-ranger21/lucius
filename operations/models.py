@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import UTC, datetime
+from typing import cast
 
 from sqlalchemy import (
     JSON,
@@ -111,8 +112,8 @@ class Grant(Base):
         if self.submission_deadline.tzinfo:
             now = now.replace(tzinfo=UTC)
 
-        delta = self.submission_deadline - now
-        return delta.days
+        delta = cast(datetime, self.submission_deadline) - now
+        return int(delta.days)
 
 
 class GrantMilestone(Base):

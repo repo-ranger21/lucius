@@ -1,6 +1,6 @@
 """Talon API client for Operations service."""
 
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 class TalonClient:
     """Client for communicating with the Talon API."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.config = config.talon
 
     def _get_headers(self) -> dict[str, str]:
@@ -67,7 +67,7 @@ class TalonClient:
                     },
                 )
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
 
         except Exception as e:
             logger.error(f"Failed to send notification via Talon: {e}")
@@ -108,7 +108,7 @@ class TalonClient:
                     },
                 )
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
 
         except Exception as e:
             logger.error(f"Failed to send alert via Talon: {e}")
@@ -140,7 +140,7 @@ class TalonClient:
                 timeout=5,
             ) as client:
                 response = client.get("/health")
-                return response.status_code == 200
+                return bool(response.status_code == 200)
         except Exception:
             return False
 
@@ -154,7 +154,7 @@ class TalonClient:
             ) as client:
                 response = client.get("/api/v1/vulnerabilities/stats")
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
         except Exception as e:
             logger.error(f"Failed to get vulnerability stats: {e}")
             return None
@@ -169,7 +169,7 @@ class TalonClient:
             ) as client:
                 response = client.get("/api/v1/scans/stats")
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
         except Exception as e:
             logger.error(f"Failed to get scan stats: {e}")
             return None
