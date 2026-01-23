@@ -12,15 +12,14 @@ Usage:
 """
 
 import argparse
-import base64
 import json
 import logging
 import sys
 import time
 import traceback
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+from typing import Any
 from urllib.parse import urljoin
 
 import requests
@@ -40,9 +39,8 @@ except ImportError:
     logging.debug("sublist3r not available - module will use simulation")
 
 try:
-    import sqlmap
-
-    SQLMAP_AVAILABLE = True
+    import importlib.util
+    SQLMAP_AVAILABLE = importlib.util.find_spec("sqlmap") is not None
 except ImportError:
     SQLMAP_AVAILABLE = False
     logging.debug("sqlmap not available")
@@ -62,7 +60,7 @@ class SubdomainResult:
     source: str
     timestamp: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -77,9 +75,9 @@ class CVEResult:
     description: str
     published: str
     severity: str
-    affected_products: List[str] = field(default_factory=list)
+    affected_products: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -96,7 +94,7 @@ class APIFuzzResult:
     vulnerability_type: str
     timestamp: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -112,7 +110,7 @@ class AuthTestResult:
     severity: str
     timestamp: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -125,13 +123,13 @@ class ReconReport:
     target: str
     subdomains_found: int
     vulnerabilities_found: int
-    subdomains: List[Dict[str, Any]]
-    cves: List[Dict[str, Any]] = field(default_factory=list)
-    api_fuzz_results: List[Dict[str, Any]] = field(default_factory=list)
-    auth_test_results: List[Dict[str, Any]] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    subdomains: list[dict[str, Any]]
+    cves: list[dict[str, Any]] = field(default_factory=list)
+    api_fuzz_results: list[dict[str, Any]] = field(default_factory=list)
+    auth_test_results: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert report to dictionary."""
         return {
             "timestamp": self.timestamp,
@@ -151,7 +149,7 @@ class ReconReport:
             with open(filepath, "w") as f:
                 json.dump(self.to_dict(), f, indent=2)
             logging.info(f"Report saved to {filepath}")
-        except IOError as e:
+        except OSError as e:
             logging.error(f"Failed to save report: {e}")
 
     def print_summary(self) -> None:
@@ -208,7 +206,7 @@ class ReconConfig:
     """Configuration for reconnaissance operations."""
 
     target: str
-    output_file: Optional[str] = None
+    output_file: str | None = None
     verbose: bool = False
     dry_run: bool = False
     enable_subdomain_scan: bool = True
@@ -218,10 +216,10 @@ class ReconConfig:
     enable_cve_lookup: bool = False
     max_results: int = 500
     timeout: int = 30
-    auth_username: Optional[str] = None
-    auth_password: Optional[str] = None
-    hackerone_username: Optional[str] = None
-    test_account_email: Optional[str] = None
+    auth_username: str | None = None
+    auth_password: str | None = None
+    hackerone_username: str | None = None
+    test_account_email: str | None = None
 
 
 # ============================================================================
@@ -234,9 +232,9 @@ class SubdomainScanner:
 
     def __init__(self, logger: logging.Logger):
         self.logger = logger
-        self.results: List[SubdomainResult] = []
+        self.results: list[SubdomainResult] = []
 
-    def scan(self, domain: str, dry_run: bool = False) -> List[SubdomainResult]:
+    def scan(self, domain: str, dry_run: bool = False) -> list[SubdomainResult]:
         """
         Enumerate subdomains for a target domain.
 
@@ -282,7 +280,7 @@ class SubdomainScanner:
                         domain=domain,
                         subdomain=subdomain,
                         source="sublist3r",
-                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        timestamp=datetime.now(UTC).isoformat(),
                     )
                     self.results.append(result)
 
@@ -304,7 +302,7 @@ class SubdomainScanner:
             self.logger.debug(traceback.format_exc())
             return []
 
-    def _simulate_scan(self, domain: str) -> List[SubdomainResult]:
+    def _simulate_scan(self, domain: str) -> list[SubdomainResult]:
         """Simulate subdomain scan for demonstration."""
         sample_subdomains = [
             f"www.{domain}",
@@ -319,7 +317,7 @@ class SubdomainScanner:
                 domain=domain,
                 subdomain=subdomain,
                 source="simulated",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
             self.results.append(result)
 
@@ -337,11 +335,11 @@ class CVEScanner:
 
     def __init__(self, logger: logging.Logger):
         self.logger = logger
-        self.results: List[CVEResult] = []
+        self.results: list[CVEResult] = []
         self.nvd_base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
         self.timeout = 30
 
-    def scan(self, keywords: List[str], dry_run: bool = False) -> List[CVEResult]:
+    def scan(self, keywords: list[str], dry_run: bool = False) -> list[CVEResult]:
         """
         Search NVD for CVEs matching keywords.
 
@@ -423,7 +421,7 @@ class CVEScanner:
         self.logger.info(f"Found {len(self.results)} CVEs")
         return self.results
 
-    def _simulate_cve_scan(self, keywords: List[str]) -> List[CVEResult]:
+    def _simulate_cve_scan(self, keywords: list[str]) -> list[CVEResult]:
         """Simulate CVE scan for demonstration."""
         sample_cves = [
             CVEResult(
@@ -458,7 +456,7 @@ class APIFuzzer:
 
     def __init__(self, logger: logging.Logger):
         self.logger = logger
-        self.results: List[APIFuzzResult] = []
+        self.results: list[APIFuzzResult] = []
         self.timeout = 10
 
         # Common fuzzing payloads for API testing
@@ -491,8 +489,8 @@ class APIFuzzer:
         }
 
     def fuzz(
-        self, base_url: str, endpoints: List[str], dry_run: bool = False
-    ) -> List[APIFuzzResult]:
+        self, base_url: str, endpoints: list[str], dry_run: bool = False
+    ) -> list[APIFuzzResult]:
         """
         Fuzz API endpoints with payloads.
 
@@ -547,7 +545,7 @@ class APIFuzzer:
                                     status_code=response.status_code,
                                     response_preview=response.text[:200],
                                     vulnerability_type=payload_type,
-                                    timestamp=datetime.now(timezone.utc).isoformat(),
+                                    timestamp=datetime.now(UTC).isoformat(),
                                 )
                                 self.results.append(result)
                                 self.logger.warning(f"Potential {payload_type} found!")
@@ -561,7 +559,7 @@ class APIFuzzer:
         self.logger.info(f"API fuzzing complete: {len(self.results)} findings")
         return self.results
 
-    def _simulate_fuzz(self, base_url: str, endpoints: List[str]) -> List[APIFuzzResult]:
+    def _simulate_fuzz(self, base_url: str, endpoints: list[str]) -> list[APIFuzzResult]:
         """Simulate API fuzzing."""
         sample_results = [
             APIFuzzResult(
@@ -571,7 +569,7 @@ class APIFuzzer:
                 status_code=200,
                 response_preview='{"user_id": 999999, "name": "Admin", "email": "admin@example.com"}',
                 vulnerability_type="idor",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             ),
         ]
         self.results = sample_results
@@ -589,16 +587,16 @@ class AuthTester:
 
     def __init__(self, logger: logging.Logger):
         self.logger = logger
-        self.results: List[AuthTestResult] = []
+        self.results: list[AuthTestResult] = []
         self.timeout = 10
 
     def test(
         self,
         base_url: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         dry_run: bool = False,
-    ) -> List[AuthTestResult]:
+    ) -> list[AuthTestResult]:
         """
         Run authentication tests.
 
@@ -657,9 +655,9 @@ class AuthTester:
                         target=base_url,
                         test_name=f"Default Credentials ({username}:{password})",
                         passed=False,
-                        details=f"Successfully authenticated with default credentials",
+                        details="Successfully authenticated with default credentials",
                         severity="CRITICAL",
-                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        timestamp=datetime.now(UTC).isoformat(),
                     )
                     self.results.append(result)
                     self.logger.warning(f"Default credentials vulnerable: {username}:{password}")
@@ -686,7 +684,7 @@ class AuthTester:
                     passed=False,
                     details="API accepted invalid JWT token",
                     severity="HIGH",
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                 )
                 self.results.append(result)
                 self.logger.warning("JWT validation vulnerability found")
@@ -702,7 +700,7 @@ class AuthTester:
             passed=True,
             details="Unable to test without valid session (test skipped)",
             severity="INFO",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
         self.results.append(result)
 
@@ -727,16 +725,16 @@ class AuthTester:
                         target=base_url,
                         test_name=f"Auth Bypass - {headers_override}",
                         passed=False,
-                        details=f"Admin endpoint accessible without valid token",
+                        details="Admin endpoint accessible without valid token",
                         severity="CRITICAL",
-                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        timestamp=datetime.now(UTC).isoformat(),
                     )
                     self.results.append(result)
 
             except requests.RequestException:
                 pass
 
-    def _simulate_auth_tests(self, base_url: str) -> List[AuthTestResult]:
+    def _simulate_auth_tests(self, base_url: str) -> list[AuthTestResult]:
         """Simulate authentication tests."""
         sample_results = [
             AuthTestResult(
@@ -745,7 +743,7 @@ class AuthTester:
                 passed=True,
                 details="Credentials not found (as expected)",
                 severity="INFO",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             ),
             AuthTestResult(
                 target=base_url,
@@ -753,7 +751,7 @@ class AuthTester:
                 passed=True,
                 details="Invalid token properly rejected",
                 severity="INFO",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             ),
         ]
         self.results = sample_results
@@ -782,7 +780,7 @@ class CVSSScorer:
         confidentiality: str = "H",
         integrity: str = "H",
         availability: str = "H",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate CVSS v3.1 score.
 
@@ -886,9 +884,9 @@ class ReconOrchestrator:
         self.api_fuzzer = APIFuzzer(self.logger) if config.enable_api_fuzz else None
         self.auth_tester = AuthTester(self.logger) if config.enable_auth_test else None
         self.cvss_scorer = CVSSScorer(self.logger)
-        self.report: Optional[ReconReport] = None
+        self.report: ReconReport | None = None
 
-    def get_request_headers(self) -> Dict[str, str]:
+    def get_request_headers(self) -> dict[str, str]:
         """Build request headers including HackerOne bug bounty headers if configured."""
         headers = {
             "User-Agent": "Lucius-SecurityScanner/1.0",
@@ -909,7 +907,7 @@ class ReconOrchestrator:
             return False
 
         # Basic validation
-        if not ("." in self.config.target):
+        if "." not in self.config.target:
             self.logger.warning(f"Target '{self.config.target}' may not be a valid domain")
 
         return True
@@ -966,7 +964,7 @@ class ReconOrchestrator:
 
             # Prepare report
             self.report = ReconReport(
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 target=self.config.target,
                 subdomains_found=len(subdomains),
                 vulnerabilities_found=len(api_fuzz_results) + len(auth_test_results),

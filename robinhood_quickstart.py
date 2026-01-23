@@ -4,9 +4,6 @@ Robinhood Bug Bounty Quick Start Helper
 Generates and validates Lucius scans for Robinhood's program
 """
 
-import json
-import subprocess
-from datetime import datetime
 
 # Robinhood Tier 1 targets
 ROBINHOOD_TARGETS = {

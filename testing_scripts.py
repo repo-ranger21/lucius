@@ -16,8 +16,8 @@ import logging
 import os
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -72,14 +72,14 @@ class TestResult:
     severity: str  # critical, high, medium, low, info
     description: str
     evidence: str
-    cvss_score: Optional[float] = None
+    cvss_score: float | None = None
     timestamp: str = ""
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.now(timezone.utc).isoformat()
+            self.timestamp = datetime.now(UTC).isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -94,12 +94,12 @@ class InfrastructureTestor:
     def __init__(self, target: str, verbose: bool = False):
         self.target = target
         self.verbose = verbose
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel(logging.DEBUG)
 
-    def test_subdomain_takeover_risk(self, subdomains: List[str]) -> List[TestResult]:
+    def test_subdomain_takeover_risk(self, subdomains: list[str]) -> list[TestResult]:
         """
         Check subdomains for potential takeover risk
 
@@ -135,7 +135,7 @@ class InfrastructureTestor:
         self.results.extend(results)
         return results
 
-    def test_exposed_internal_services(self, subdomains: List[str]) -> List[TestResult]:
+    def test_exposed_internal_services(self, subdomains: list[str]) -> list[TestResult]:
         """
         Check for internal services exposed externally
 
@@ -185,7 +185,7 @@ class InfrastructureTestor:
         self.results.extend(results)
         return results
 
-    def test_misconfigured_dns(self, subdomains: List[str]) -> List[TestResult]:
+    def test_misconfigured_dns(self, subdomains: list[str]) -> list[TestResult]:
         """
         Check for common DNS misconfigurations
         """
@@ -225,12 +225,12 @@ class InputValidationTester:
     def __init__(self, target: str, verbose: bool = False):
         self.target = target
         self.verbose = verbose
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel(logging.DEBUG)
 
-    def analyze_fuzz_results(self, fuzz_results: List[Dict]) -> List[TestResult]:
+    def analyze_fuzz_results(self, fuzz_results: list[dict]) -> list[TestResult]:
         """
         Analyze API fuzzing results for input validation issues
         """
@@ -270,7 +270,7 @@ class InputValidationTester:
                         test_name="error_message_information_disclosure",
                         status="found",
                         severity="low",
-                        description=f"Error message reveals system information",
+                        description="Error message reveals system information",
                         evidence=f"Endpoint: {endpoint}, Message: {response_preview[:100]}",
                         cvss_score=3.7,
                     )
@@ -280,7 +280,7 @@ class InputValidationTester:
         self.results.extend(results)
         return results
 
-    def suggest_idor_testing(self, endpoints: List[str]) -> List[TestResult]:
+    def suggest_idor_testing(self, endpoints: list[str]) -> list[TestResult]:
         """
         Suggest IDOR testing strategies for identified endpoints
         """
@@ -320,12 +320,12 @@ class AuthenticationTester:
     def __init__(self, target: str, verbose: bool = False):
         self.target = target
         self.verbose = verbose
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel(logging.DEBUG)
 
-    def analyze_auth_results(self, auth_results: List[Dict]) -> List[TestResult]:
+    def analyze_auth_results(self, auth_results: list[dict]) -> list[TestResult]:
         """
         Analyze authentication test results
         """
@@ -367,7 +367,7 @@ class AuthenticationTester:
         self.results.extend(results)
         return results
 
-    def check_token_claims(self, token_claims: Optional[Dict]) -> List[TestResult]:
+    def check_token_claims(self, token_claims: dict | None) -> list[TestResult]:
         """
         Analyze JWT token claims for security issues
         """
@@ -419,12 +419,12 @@ class BusinessLogicTester:
     def __init__(self, target: str, verbose: bool = False):
         self.target = target
         self.verbose = verbose
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel(logging.DEBUG)
 
-    def analyze_state_machine_consistency(self, state_transitions: List[Dict]) -> List[TestResult]:
+    def analyze_state_machine_consistency(self, state_transitions: list[dict]) -> list[TestResult]:
         """
         Analyze API state machine for consistency issues
 
@@ -444,7 +444,7 @@ class BusinessLogicTester:
         results = []
 
         # Check for state divergence
-        for i, transition in enumerate(state_transitions):
+        for _i, transition in enumerate(state_transitions):
             endpoint = transition.get("endpoint", "unknown")
             state = transition.get("state", "unknown")
             timestamp = transition.get("timestamp", "unknown")
@@ -469,7 +469,7 @@ class BusinessLogicTester:
         self.results.extend(results)
         return results
 
-    def analyze_authorization_controls(self, endpoints: List[Dict]) -> List[TestResult]:
+    def analyze_authorization_controls(self, endpoints: list[dict]) -> list[TestResult]:
         """
         Test authorization controls across API endpoints
 
@@ -515,7 +515,7 @@ class BusinessLogicTester:
         self.results.extend(results)
         return results
 
-    def suggest_business_logic_tests(self) -> List[TestResult]:
+    def suggest_business_logic_tests(self) -> list[TestResult]:
         """
         Provide suggestions for business logic testing
         """
@@ -589,12 +589,12 @@ class AuthorizationTester:
     def __init__(self, target: str, verbose: bool = False):
         self.target = target
         self.verbose = verbose
-        self.results: List[TestResult] = []
+        self.results: list[TestResult] = []
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel(logging.DEBUG)
 
-    def test_data_scope_enforcement(self, data_endpoints: List[Dict]) -> List[TestResult]:
+    def test_data_scope_enforcement(self, data_endpoints: list[dict]) -> list[TestResult]:
         """
         Verify that API properly scopes data to authenticated user
 
@@ -641,7 +641,7 @@ class AuthorizationTester:
         self.results.extend(results)
         return results
 
-    def test_endpoint_authentication_requirements(self, endpoints: List[Dict]) -> List[TestResult]:
+    def test_endpoint_authentication_requirements(self, endpoints: list[dict]) -> list[TestResult]:
         """
         Verify that endpoints requiring authentication actually enforce it
 
@@ -689,7 +689,7 @@ class AuthorizationTester:
         self.results.extend(results)
         return results
 
-    def test_privilege_level_enforcement(self, operations: List[Dict]) -> List[TestResult]:
+    def test_privilege_level_enforcement(self, operations: list[dict]) -> list[TestResult]:
         """
         Verify that privilege levels are enforced correctly
 
@@ -845,7 +845,7 @@ class EvidenceCollector:
         issue_type: str,
         evidence: str,
         cvss_vector: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format infrastructure finding for HackerOne"""
 
         return {
@@ -855,11 +855,11 @@ class EvidenceCollector:
             "issue": issue_type,
             "discovery_method": "Certificate Transparency logs + DNS enumeration",
             "reproduction_steps": [
-                f"1. Query CT logs for subdomains of robinhood.com",
+                "1. Query CT logs for subdomains of robinhood.com",
                 f"2. Identify: {subdomain}",
                 f"3. Perform DNS lookup: nslookup {subdomain}",
-                f"4. Document CNAME/DNS configuration",
-                f"5. Verify service status and reachability",
+                "4. Document CNAME/DNS configuration",
+                "5. Verify service status and reachability",
             ],
             "evidence": evidence,
             "cvss_vector": cvss_vector,
@@ -879,7 +879,7 @@ class EvidenceCollector:
         payload: str,
         response: str,
         cvss_vector: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format input validation finding for HackerOne"""
 
         return {
@@ -889,10 +889,10 @@ class EvidenceCollector:
             "vulnerability_type": vulnerability_type,
             "discovery_method": "API fuzzing with structured payloads",
             "reproduction_steps": [
-                f"1. Authenticate to Robinhood test account",
+                "1. Authenticate to Robinhood test account",
                 f"2. Send request to: {endpoint}",
                 f"3. Include payload: {payload[:100]}...",  # Truncate for brevity
-                f"4. Observe response behavior",
+                "4. Observe response behavior",
             ],
             "payload_used": payload,
             "response_received": response[:200],  # Truncated
@@ -910,9 +910,9 @@ class EvidenceCollector:
         self,
         endpoint: str,
         vulnerability_type: str,
-        test_result: Dict,
+        test_result: dict,
         cvss_vector: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format authentication finding for HackerOne"""
 
         return {
@@ -922,15 +922,15 @@ class EvidenceCollector:
             "vulnerability_type": vulnerability_type,
             "discovery_method": "Token analysis and authentication testing",
             "reproduction_steps": [
-                f"1. Authenticate to test account",
-                f"2. Capture authentication token",
-                f"3. Analyze token claims and expiration",
-                f"4. Test token validation",
-                f"5. Verify session management",
+                "1. Authenticate to test account",
+                "2. Capture authentication token",
+                "3. Analyze token claims and expiration",
+                "4. Test token validation",
+                "5. Verify session management",
             ],
             "test_details": json.dumps(test_result, indent=2),
             "cvss_vector": cvss_vector,
-            "impact": f"Potential authentication bypass or privilege escalation",
+            "impact": "Potential authentication bypass or privilege escalation",
             "remediation": [
                 "Implement proper token validation",
                 "Use short token expiration times",
@@ -946,7 +946,7 @@ class EvidenceCollector:
         expected_behavior: str,
         actual_behavior: str,
         cvss_vector: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Format business logic finding for HackerOne"""
 
         return {
@@ -956,7 +956,7 @@ class EvidenceCollector:
             "discovery_method": "Manual business logic testing",
             "reproduction_steps": [
                 f"1. {test_case.split(';')[0].strip() if ';' in test_case else test_case}",
-                f"2. Verify expected vs actual behavior",
+                "2. Verify expected vs actual behavior",
             ],
             "test_case": test_case,
             "expected_behavior": expected_behavior,
@@ -982,8 +982,8 @@ class ReportGenerator:
 
     @staticmethod
     def generate_json_report(
-        target: str, test_results: List[TestResult], output_file: Optional[str] = None
-    ) -> Dict[str, Any]:
+        target: str, test_results: list[TestResult], output_file: str | None = None
+    ) -> dict[str, Any]:
         """Generate JSON report from test results"""
 
         # Categorize findings
@@ -993,7 +993,7 @@ class ReportGenerator:
 
         report = {
             "metadata": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "target": target,
                 "assessment_type": "Ethical Vulnerability Research",
                 "program": "Robinhood HackerOne Bug Bounty",
@@ -1025,7 +1025,7 @@ class ReportGenerator:
     @staticmethod
     def generate_hackerone_submission_template(
         finding: TestResult, evidence_collector: EvidenceCollector = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate HackerOne submission template for a finding
         """
@@ -1092,7 +1092,7 @@ This vulnerability allows:
         return template
 
     @staticmethod
-    def print_summary(test_results: List[TestResult]) -> None:
+    def print_summary(test_results: list[TestResult]) -> None:
         """Print summary of test results with HackerOne context"""
 
         print("\n" + "=" * 70)
@@ -1254,7 +1254,7 @@ IMPORTANT REMINDERS:
 
     # Generate report
     if all_results:
-        report = ReportGenerator.generate_json_report(args.target, all_results, args.output)
+        ReportGenerator.generate_json_report(args.target, all_results, args.output)
         ReportGenerator.print_summary(all_results)
 
         # Optionally generate submission templates
