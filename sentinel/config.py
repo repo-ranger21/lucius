@@ -1,5 +1,6 @@
 """Sentinel configuration management."""
 
+import json
 import os
 from dataclasses import dataclass, field
 
@@ -47,10 +48,42 @@ class ScanConfig:
     """Scan configuration."""
 
     max_concurrent_requests: int = 5
+    max_rps: int = 50
     batch_size: int = 100
     include_dev_dependencies: bool = False
     severity_threshold: str = "low"  # low, medium, high, critical
     output_format: str = "json"  # json, cyclonedx, spdx
+
+
+def _default_safe_url_allowlist() -> dict[str, list[str]]:
+    return {
+        "api.nnip.com": [],
+        "docs.gs.com": [],
+    }
+
+
+def _load_safe_url_allowlist() -> dict[str, list[str]]:
+    raw = os.getenv("SENTINEL_SAFE_URL_ALLOWLIST")
+    if not raw:
+        return _default_safe_url_allowlist()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return _default_safe_url_allowlist()
+
+    allowlist: dict[str, list[str]] = {}
+    if isinstance(data, dict):
+        for host, ips in data.items():
+            if isinstance(host, str) and isinstance(ips, list):
+                allowlist[host.lower()] = [str(ip) for ip in ips]
+    return allowlist or _default_safe_url_allowlist()
+
+
+@dataclass
+class SSRFConfig:
+    """SSRF defensive configuration."""
+
+    safe_url_allowlist: dict[str, list[str]] = field(default_factory=_load_safe_url_allowlist)
 
 
 @dataclass
@@ -61,6 +94,7 @@ class Config:
     talon: TalonConfig = field(default_factory=TalonConfig)
     cache: CacheConfig = field(default_factory=CacheConfig)
     scan: ScanConfig = field(default_factory=ScanConfig)
+    ssrf: SSRFConfig = field(default_factory=SSRFConfig)
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))
 
     @classmethod

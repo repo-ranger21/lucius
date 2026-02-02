@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 import httpx
+import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from sentinel.config import config
@@ -18,8 +19,68 @@ class NVDClient:
 
     def __init__(self) -> None:
         self.config = config.nvd
+        self.session = requests.Session()
+        self.session.headers.update(self._get_headers())
         self._client: httpx.AsyncClient | None = None
         self._last_request_time: float = 0
+
+    def _raise_for_status(self, response: requests.Response, url: str) -> None:
+        """Raise an httpx.HTTPStatusError for non-2xx responses."""
+        if response.status_code >= 400:
+            request = httpx.Request("GET", str(url))
+            httpx_response = httpx.Response(response.status_code, request=request)
+            raise httpx.HTTPStatusError("HTTP error", request=request, response=httpx_response)
+
+    def search_by_cpe(self, cpe_name: str) -> list[dict[str, Any]]:
+        """Search vulnerabilities by CPE name (sync)."""
+        params = {"cpeName": cpe_name}
+        base_url = str(self.config.base_url)
+        response = self.session.get(base_url, params=params)
+        self._raise_for_status(response, base_url)
+        data = response.json()
+        return data.get("vulnerabilities", [])
+
+    def search_by_keyword(self, keyword: str) -> list[dict[str, Any]]:
+        """Search vulnerabilities by keyword (sync)."""
+        params = {"keywordSearch": keyword}
+        base_url = str(self.config.base_url)
+        response = self.session.get(base_url, params=params)
+        self._raise_for_status(response, base_url)
+        data = response.json()
+        return data.get("vulnerabilities", [])
+
+    def get_cve(self, cve_id: str) -> dict[str, Any] | None:
+        """Get a specific CVE (sync)."""
+        params = {"cveId": cve_id}
+        base_url = str(self.config.base_url)
+        response = self.session.get(base_url, params=params)
+        self._raise_for_status(response, base_url)
+        data = response.json()
+        vulnerabilities = data.get("vulnerabilities", [])
+        if not vulnerabilities:
+            return None
+        return vulnerabilities[0].get("cve", {})
+
+    def build_cpe(self, vendor: str, product: str, version: str, part: str = "a") -> str:
+        """Build a CPE 2.3 string for a package."""
+        return f"cpe:2.3:{part}:{vendor}:{product}:{version}:*:*:*:*:*:*:*"
+
+    def parse_severity(self, cve_data: dict[str, Any]) -> dict[str, Any]:
+        """Parse CVSS severity data from a CVE entry."""
+        metrics = cve_data.get("metrics", {})
+        cvss_metrics = (
+            metrics.get("cvssMetricV31")
+            or metrics.get("cvssMetricV30")
+            or metrics.get("cvssMetricV2")
+            or []
+        )
+        if not cvss_metrics:
+            return {"score": None, "severity": "UNKNOWN"}
+        cvss_data = cvss_metrics[0].get("cvssData", {})
+        return {
+            "score": cvss_data.get("baseScore"),
+            "severity": cvss_data.get("baseSeverity", "UNKNOWN"),
+        }
 
     async def __aenter__(self) -> "NVDClient":
         """Async context manager entry."""
@@ -57,7 +118,7 @@ class NVDClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
     )
-    async def get_cve(self, cve_id: str) -> dict[str, Any] | None:
+    async def get_cve_async(self, cve_id: str) -> dict[str, Any] | None:
         """
         Get details for a specific CVE.
 
@@ -94,7 +155,7 @@ class NVDClient:
             logger.error(f"Error fetching CVE {cve_id}: {e}")
             raise
 
-    async def search_cves(
+    async def search_cves_async(
         self,
         keyword: str | None = None,
         cpe_name: str | None = None,
@@ -158,7 +219,7 @@ class NVDClient:
             logger.error(f"Error searching CVEs: {e}")
             raise
 
-    async def get_cves_for_package(
+    async def get_cves_for_package_async(
         self,
         package_name: str,
         ecosystem: str = "npm",
@@ -176,7 +237,7 @@ class NVDClient:
             List of CVEs affecting the package
         """
         # Use keyword search as fallback (CPE matching is complex)
-        results = await self.search_cves(keyword=package_name)
+        results = await self.search_cves_async(keyword=package_name)
 
         cves = []
         for cve in results.get("vulnerabilities", []):

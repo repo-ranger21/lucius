@@ -1,5 +1,11 @@
 """Shared utilities for Lucius platform."""
 
+from shared.credentials import (
+    Credential,
+    CredentialError,
+    CredentialManager,
+    get_credential_manager,
+)
 from shared.interfaces import (
     DataCleanerInterface,
     DependencyParserInterface,
@@ -18,6 +24,29 @@ from shared.interfaces import (
     VulnerabilityDatabaseInterface,
     VulnerabilityRepositoryInterface,
 )
+
+__all__ = [
+    "Credential",
+    "CredentialError",
+    "CredentialManager",
+    "get_credential_manager",
+    "DataCleanerInterface",
+    "DependencyParserInterface",
+    "EventEmitterInterface",
+    "EventHandlerInterface",
+    "GrantRepositoryInterface",
+    "GrantServiceInterface",
+    "NotificationDispatcherInterface",
+    "NotificationInterface",
+    "ProcessorInterface",
+    "RepositoryInterface",
+    "ScannerInterface",
+    "ScanServiceInterface",
+    "ThreatAnalyzerInterface",
+    "ThreatScoringModelInterface",
+    "VulnerabilityDatabaseInterface",
+    "VulnerabilityRepositoryInterface",
+]
 from shared.logging import get_logger, setup_logging
 from shared.types import (
     APIResponse,

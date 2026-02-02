@@ -25,6 +25,7 @@ class ScanService:
         """
         # Create scan result
         scan = ScanResult(
+            tenant_id=data.get("tenant_id", "default"),
             project_name=data["project_name"],
             package_manager=data["package_manager"],
             scan_type=data.get("scan_type", "dependency"),

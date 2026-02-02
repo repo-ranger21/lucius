@@ -7,6 +7,14 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+try:
+    from operations.database import get_session as get_db
+except Exception:  # pragma: no cover - optional dependency for tests
+
+    def get_db():  # type: ignore[return-type]
+        raise ImportError("Database session is not available")
+
+
 from operations.models import Grant, GrantMilestone
 from shared.logging import get_logger
 
@@ -143,10 +151,15 @@ class MilestoneRepository:
 class GrantService:
     """Service layer for grant management."""
 
-    def __init__(self, session: Session) -> None:
-        self.session = session
-        self.grant_repo = GrantRepository(session)
-        self.milestone_repo = MilestoneRepository(session)
+    def __init__(self, session: Session | None = None) -> None:
+        if session is None:
+            self._session_ctx = get_db()
+            self.session = self._session_ctx.__enter__()
+        else:
+            self._session_ctx = None
+            self.session = session
+        self.grant_repo = GrantRepository(self.session)
+        self.milestone_repo = MilestoneRepository(self.session)
 
     def create_grant(
         self,

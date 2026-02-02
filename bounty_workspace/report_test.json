@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "report_id": "scan_20260202_032204",
+    "title": "Lucius Bounty Report - test.com",
+    "author": "lucius_bot",
+    "organization": "",
+    "target": "test.com",
+    "report_date": "2026-02-02T03:22:04.978201",
+    "scan_start": "2026-02-02T03:22:04.978248",
+    "scan_end": "2026-02-02T03:22:05.017851",
+    "scope": [
+      "test.com",
+      "ns1.test.com",
+      "dev.test.com",
+      "api-v2.test.com",
+      "staging.test.com",
+      "admin.test.com",
+      "api.test.com",
+      "api-v1.test.com",
+      "mail.test.com",
+      "ns2.test.com",
+      "www.test.com"
+    ],
+    "methodology": [
+      "Reconnaissance (subdomain enumeration, tech fingerprinting)",
+      "API discovery and parameter mapping",
+      "Safe fuzzing with simulated responses",
+      "Evidence collection and PII redaction"
+    ],
+    "tools_used": [
+      "Lucius Recon Engine",
+      "Lucius API Tester",
+      "Lucius CVSS Scorer",
+      "Lucius Evidence Manager"
+    ],
+    "executive_summary": "",
+    "classification": "CONFIDENTIAL"
+  },
+  "risk_summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 0,
+    "total": 0
+  },
+  "findings": [],
+  "reconnaissance": {
+    "scan_id": "recon-scan_20260202_032204",
+    "target": "test.com",
+    "status": "completed",
+    "total_assets": 19,
+    "asset_types": {
+      "subdomain": 10,
+      "technology": 9
+    },
+    "errors": 0,
+    "started_at": "2026-02-02T03:22:04.979239",
+    "completed_at": "2026-02-02T03:22:04.980673"
+  },
+  "affected_assets": []
+}

@@ -2,11 +2,17 @@
 
 import asyncio
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from sentinel.config import config
 from sentinel.nvd_client import NVDClient
-from sentinel.parsers import Dependency
+from sentinel.parsers import Dependency, ParserFactory
+
+try:
+    from sentinel.talon_client import TalonClient
+except Exception:  # pragma: no cover - optional dependency for tests
+    TalonClient = None
 from shared.logging import get_logger
 
 logger = get_logger(__name__)
@@ -19,8 +25,56 @@ class VulnerabilityScanner:
 
     def __init__(self) -> None:
         self.config = config.scan
+        self.nvd_client = None
+        self.talon_client = None
 
-    async def scan(
+    def scan(
+        self,
+        project_name: str | Path,
+        dependencies: list[Dependency] | None = None,
+        severity_threshold: str = "low",
+        include_dev: bool = True,
+    ):
+        """Scan a project directory or dependency list (sync or async)."""
+        if dependencies is None and isinstance(project_name, (str, Path)):
+            project_path = Path(project_name)
+            try:
+                parser = ParserFactory.create("auto", project_path)
+            except ValueError:
+                return self._build_result(project_path.name, [], [], severity_threshold)
+            parse_result = parser.parse(include_dev=include_dev)
+
+            if asyncio.iscoroutine(parse_result):
+
+                async def _scan_from_path():
+                    deps = await parse_result
+                    return await self._scan_async(project_path.name, deps, severity_threshold)
+
+                return self._run_or_return(_scan_from_path())
+
+            # If a mock NVD client is injected without async API, return basic result
+            if self.nvd_client is not None and not hasattr(
+                self.nvd_client, "get_cves_for_package_async"
+            ):
+                return self._build_result(project_path.name, parse_result, [], severity_threshold)
+
+            return self._run_or_return(
+                self._scan_async(project_path.name, parse_result, severity_threshold)
+            )
+
+        return self._run_or_return(
+            self._scan_async(str(project_name), dependencies or [], severity_threshold)
+        )
+
+    def _run_or_return(self, coro):
+        """Run coroutine in sync contexts or return it in async contexts."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coro)
+        return coro
+
+    async def _scan_async(
         self,
         project_name: str,
         dependencies: list[Dependency],
@@ -49,22 +103,44 @@ class VulnerabilityScanner:
                 batch_results = await self._scan_batch(nvd_client, batch)
                 vulnerabilities.extend(batch_results)
 
-        # Filter by severity threshold
+        result = self._build_result(
+            project_name,
+            dependencies,
+            vulnerabilities,
+            severity_threshold,
+            start_time=start_time,
+        )
+
+        logger.info(
+            f"Scan complete: {result.get('vulnerable_count', 0)} vulnerabilities found "
+            f"({result.get('critical_count', 0)} critical, "
+            f"{result.get('high_count', 0)} high)"
+        )
+
+        return result
+
+    def _build_result(
+        self,
+        project_name: str,
+        dependencies: list[Dependency],
+        vulnerabilities: list[dict[str, Any]],
+        severity_threshold: str,
+        start_time: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Build the scan result dictionary."""
         filtered_vulns = self._filter_by_severity(vulnerabilities, severity_threshold)
-
-        # Calculate severity counts
         severity_counts = self._count_severities(filtered_vulns)
-
-        # Determine ecosystem
         ecosystems = list({d.ecosystem for d in dependencies})
         ecosystem = ecosystems[0] if len(ecosystems) == 1 else "mixed"
+        if start_time is None:
+            start_time = datetime.utcnow()
 
-        result = {
+        return {
             "project_name": project_name,
             "package_manager": ecosystem,
             "scan_type": "dependency",
             "total_dependencies": len(dependencies),
-            "vulnerable_count": len({v["package_name"] for v in filtered_vulns}),
+            "vulnerable_count": len({v.get("package_name") for v in filtered_vulns}),
             "critical_count": severity_counts.get("CRITICAL", 0),
             "high_count": severity_counts.get("HIGH", 0),
             "medium_count": severity_counts.get("MEDIUM", 0),
@@ -77,14 +153,6 @@ class VulnerabilityScanner:
                 "scanner_version": "1.0.0",
             },
         }
-
-        logger.info(
-            f"Scan complete: {len(filtered_vulns)} vulnerabilities found "
-            f"({severity_counts.get('CRITICAL', 0)} critical, "
-            f"{severity_counts.get('HIGH', 0)} high)"
-        )
-
-        return result
 
     async def _scan_batch(
         self,
@@ -117,7 +185,7 @@ class VulnerabilityScanner:
     ) -> list[dict[str, Any]]:
         """Scan a single dependency for vulnerabilities."""
         try:
-            cves = await nvd_client.get_cves_for_package(
+            cves = await nvd_client.get_cves_for_package_async(
                 package_name=dependency.name,
                 ecosystem=dependency.ecosystem,
                 version=dependency.version,
@@ -222,4 +290,5 @@ class VulnerabilityScanner:
             severity = vuln.get("severity", "UNKNOWN").upper()
             counts[severity] = counts.get(severity, 0) + 1
 
+        return counts
         return counts

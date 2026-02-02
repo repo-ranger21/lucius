@@ -5,4 +5,4 @@ Tools for grant pipeline tracking, deadline monitoring,
 and nonprofit data cleaning.
 """
 
-from operations import services as services
+from . import services as services

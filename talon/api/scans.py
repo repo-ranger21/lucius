@@ -68,7 +68,7 @@ scan_output_model = scans_ns.model(
 )
 
 
-@scans_ns.route("")
+@scans_ns.route("/")
 class ScanList(Resource):
     """Scan collection resource."""
 
@@ -103,6 +103,17 @@ class ScanList(Resource):
     def post(self) -> tuple[dict[str, Any], int]:
         """Create a new scan result."""
         data = request.json
+
+        if "package_manager" not in data:
+            ecosystems = {
+                dep.get("ecosystem")
+                for dep in data.get("dependencies", [])
+                if isinstance(dep, dict)
+            }
+            data["package_manager"] = ecosystems.pop() if len(ecosystems) == 1 else "unknown"
+
+        if "total_dependencies" not in data:
+            data["total_dependencies"] = len(data.get("dependencies", []))
 
         logger.info(f"Received scan result for project: {data.get('project_name')}")
 

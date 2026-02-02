@@ -94,11 +94,13 @@ class VulnerabilityCreate(VulnerabilityBase):
         description="CVE identifier (e.g., CVE-2021-44228)",
     )
 
-    @field_validator("cve_id")
+    @field_validator("cve_id", mode="before")
     @classmethod
     def normalize_cve_id(cls, v: str) -> str:
-        """Normalize CVE ID to uppercase."""
-        return v.upper().strip()
+        """Normalize CVE ID to uppercase before validation."""
+        if v is None:
+            return v
+        return str(v).upper().strip()
 
 
 class VulnerabilityUpdate(VulnerabilityBase):

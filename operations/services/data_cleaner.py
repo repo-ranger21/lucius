@@ -6,11 +6,32 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
-from email_validator import EmailNotValidError, validate_email
+try:
+    import pandas as pd
+except ModuleNotFoundError:  # pragma: no cover - optional dependency for tests
+    pd = None
+try:
+    from email_validator import EmailNotValidError, validate_email
+except ModuleNotFoundError:  # pragma: no cover - optional dependency for tests
 
-from operations.models import NonprofitData
+    class EmailNotValidError(ValueError):
+        """Fallback error when email_validator is unavailable."""
+
+    def validate_email(email: str, *args, **kwargs):
+        """Minimal fallback email validation."""
+        if not isinstance(email, str):
+            raise EmailNotValidError("Invalid email")
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email.strip()):
+            raise EmailNotValidError("Invalid email")
+        return {"email": email.strip()}
+
+
 from shared.logging import get_logger
+
+try:
+    from ..models import NonprofitData
+except ModuleNotFoundError:  # pragma: no cover - optional dependency for tests
+    NonprofitData = None
 
 logger = get_logger(__name__)
 
@@ -191,8 +212,10 @@ class DataCleaner:
             "issues": self.issues,
         }
 
-    def _read_file(self, path: Path) -> pd.DataFrame:
+    def _read_file(self, path: Path):
         """Read data from various file formats."""
+        if pd is None:
+            raise ImportError("pandas is required to read input files")
         suffix = path.suffix.lower()
 
         if suffix == ".csv":
@@ -204,8 +227,10 @@ class DataCleaner:
         else:
             raise ValueError(f"Unsupported file format: {suffix}")
 
-    def _save_file(self, df: pd.DataFrame, path: Path, format: str) -> None:
+    def _save_file(self, df, path: Path, format: str) -> None:
         """Save DataFrame to file."""
+        if pd is None:
+            raise ImportError("pandas is required to save output files")
         if format == "csv":
             df.to_csv(path, index=False)
         elif format == "json":
@@ -213,7 +238,7 @@ class DataCleaner:
         elif format == "excel":
             df.to_excel(path, index=False)
 
-    def _normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _normalize_columns(self, df):
         """Normalize column names to standard format."""
         # Lowercase and strip whitespace
         df.columns = df.columns.str.lower().str.strip().str.replace(" ", "_")
@@ -338,7 +363,7 @@ class DataCleaner:
 
     def _clean_text(self, value: Any) -> str | None:
         """Clean text field."""
-        if not value or pd.isna(value):
+        if not value or (pd is not None and pd.isna(value)):
             return None
 
         text = str(value).strip()
@@ -348,9 +373,30 @@ class DataCleaner:
 
         return text if text else None
 
+    def _clean_name(self, name: str | None) -> str:
+        """Clean organization name by capitalizing properly."""
+        if not name or not isinstance(name, str):
+            return ""
+        # Clean whitespace first
+        cleaned = self._clean_text(name)
+        if not cleaned:
+            return ""
+        # Capitalize each word
+        return " ".join(word.capitalize() for word in cleaned.split())
+
+    def _standardize_column_name(self, column_name: str) -> str:
+        """Convert column name to lowercase snake_case format.
+
+        Example: "Organization Name" -> "organization_name"
+        """
+        if not column_name:
+            return ""
+        # Replace spaces with underscores and convert to lowercase
+        return column_name.strip().replace(" ", "_").lower()
+
     def _clean_phone(self, value: Any) -> str | None:
         """Clean and format phone number."""
-        if not value or pd.isna(value):
+        if not value or (pd is not None and pd.isna(value)):
             return None
 
         try:
@@ -360,43 +406,45 @@ class DataCleaner:
             phone = phonenumbers.parse(str(value), "US")
 
             if phonenumbers.is_valid_number(phone):
-                return phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.E164)
+                return phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.NATIONAL)
         except Exception:
             pass
 
         # Fallback: just extract digits
         digits = re.sub(r"[^\d]", "", str(value))
         if len(digits) == 10:
-            return f"+1{digits}"
+            return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
         elif len(digits) == 11 and digits.startswith("1"):
-            return f"+{digits}"
+            return f"({digits[1:4]}) {digits[4:7]}-{digits[7:]}"
 
         return None
 
     def _clean_email(self, value: Any) -> str | None:
         """Clean and validate email."""
-        if not value or pd.isna(value):
+        if not value or (pd is not None and pd.isna(value)):
             return None
 
         email = str(value).strip().lower()
 
         try:
-            valid = validate_email(email)
-            return valid.email
+            valid = validate_email(email, check_deliverability=False)
+            if isinstance(valid, dict):
+                return valid.get("email") or email
+            return getattr(valid, "email", None) or email
         except EmailNotValidError:
             return None
 
     def _is_valid_email(self, value: str) -> bool:
         """Check if email is valid."""
         try:
-            validate_email(value.strip())
+            validate_email(value.strip(), check_deliverability=False)
             return True
         except EmailNotValidError:
             return False
 
     def _clean_url(self, value: Any) -> str | None:
         """Clean and validate URL."""
-        if not value or pd.isna(value):
+        if not value or (pd is not None and pd.isna(value)):
             return None
 
         url = str(value).strip().lower()
@@ -466,16 +514,33 @@ class DataCleaner:
             "phone",
             "email",
             "website",
-            "address",
             "mission_statement",
             "ntee_code",
         ]
 
+        address_present = any(
+            data.get(key)
+            for key in (
+                "address",
+                "address_line1",
+                "street",
+                "city",
+                "state",
+                "zip",
+                "zip_code",
+            )
+        )
+
         present = sum(1 for f in fields if data.get(f))
-        return round((present / len(fields)) * 100, 2)
+        if address_present:
+            present += 1
+        total_fields = len(fields) + 1
+        return round((present / total_fields) * 100, 2)
 
     def _create_nonprofit(self, data: dict[str, Any]) -> NonprofitData:
         """Create NonprofitData instance from cleaned data."""
+        if NonprofitData is None:
+            raise ImportError("operations.models is required to create nonprofit records")
         return NonprofitData(
             ein=data.get("ein"),
             organization_name=data["organization_name"],
@@ -496,6 +561,8 @@ class DataCleaner:
 
     def _update_nonprofit(self, nonprofit: NonprofitData, data: dict[str, Any]) -> None:
         """Update existing nonprofit with new data."""
+        if NonprofitData is None:
+            raise ImportError("operations.models is required to update nonprofit records")
         for field in [
             "dba_name",
             "phone",
@@ -514,4 +581,5 @@ class DataCleaner:
             nonprofit.address = data["address"]
 
         nonprofit.data_quality_score = data.get("data_quality_score")
+        nonprofit.cleaned_at = datetime.utcnow()
         nonprofit.cleaned_at = datetime.utcnow()

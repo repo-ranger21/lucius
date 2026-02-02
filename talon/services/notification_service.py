@@ -200,6 +200,7 @@ class NotificationService:
     ) -> Notification:
         """Create a notification record."""
         notification = Notification(
+            tenant_id="default",
             notification_type=notification_type,
             channel=channel,
             recipient=recipient,

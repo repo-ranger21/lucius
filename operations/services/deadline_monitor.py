@@ -5,6 +5,19 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+try:
+    from twilio.rest import Client
+except ModuleNotFoundError:  # pragma: no cover - optional dependency for tests
+    Client = None
+
+try:
+    from operations.database import get_session as get_db
+except Exception:  # pragma: no cover - optional dependency for tests
+
+    def get_db():  # type: ignore[return-type]
+        raise ImportError("Database session is not available")
+
+
 from operations.config import config
 from operations.models import Grant, GrantMilestone
 from operations.services.grant_service import GrantRepository, MilestoneRepository
@@ -30,7 +43,8 @@ class SMSNotifier:
             return False
 
         try:
-            from twilio.rest import Client
+            if Client is None:
+                raise RuntimeError("Twilio client is not available")
 
             client = Client(self.config.account_sid, self.config.auth_token)
 
@@ -51,10 +65,15 @@ class SMSNotifier:
 class DeadlineMonitor:
     """Service for monitoring grant deadlines and sending reminders."""
 
-    def __init__(self, session: Session) -> None:
-        self.session = session
-        self.grant_repo = GrantRepository(session)
-        self.milestone_repo = MilestoneRepository(session)
+    def __init__(self, session: Session | None = None) -> None:
+        if session is None:
+            self._session_ctx = get_db()
+            self.session = self._session_ctx.__enter__()
+        else:
+            self._session_ctx = None
+            self.session = session
+        self.grant_repo = GrantRepository(self.session)
+        self.milestone_repo = MilestoneRepository(self.session)
         self.sms_notifier = SMSNotifier()
         self.reminder_days = config.scheduler.reminder_days_before
 

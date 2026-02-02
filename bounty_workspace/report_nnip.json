@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "report_id": "scan_20260202_032313",
+    "title": "Lucius Bounty Report - nnip.com",
+    "author": "lucius_bot",
+    "organization": "",
+    "target": "nnip.com",
+    "report_date": "2026-02-02T03:23:13.379612",
+    "scan_start": "2026-02-02T03:23:13.379644",
+    "scan_end": "2026-02-02T03:26:41.350958",
+    "scope": [
+      "nnip.com",
+      "staging.nnip.com",
+      "admin.nnip.com",
+      "dev.nnip.com",
+      "ns2.nnip.com",
+      "api-v2.nnip.com",
+      "mail.nnip.com",
+      "api-v1.nnip.com",
+      "www.nnip.com",
+      "ns1.nnip.com",
+      "api.nnip.com"
+    ],
+    "methodology": [
+      "Reconnaissance (subdomain enumeration, tech fingerprinting)",
+      "API discovery and parameter mapping",
+      "Safe fuzzing with simulated responses",
+      "Evidence collection and PII redaction"
+    ],
+    "tools_used": [
+      "Lucius Recon Engine",
+      "Lucius API Tester",
+      "Lucius CVSS Scorer",
+      "Lucius Evidence Manager"
+    ],
+    "executive_summary": "",
+    "classification": "CONFIDENTIAL"
+  },
+  "risk_summary": {
+    "critical": 4,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 0,
+    "total": 4
+  },
+  "findings": [
+    {
+      "title": "command_injection at https://nnip.com/api/users/{id}",
+      "severity": "critical",
+      "description": "Detected command_injection with 33% confidence",
+      "cve_id": null,
+      "cvss_score": 10.0,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "affected_assets": [
+        "https://nnip.com/api/users/{id}"
+      ],
+      "impact": "",
+      "reproduction_steps": [],
+      "remediation": "Ensure proper input validation and output encoding.",
+      "references": [],
+      "evidence": [
+        {
+          "evidence_id": "98e82413-16fb-42b3-bff4-25dbcb25e5c8"
+        }
+      ],
+      "discovered_at": "2026-02-02T03:26:41.136735",
+      "tags": [
+        "command_injection"
+      ]
+    },
+    {
+      "title": "command_injection at https://nnip.com/api/users/{id}",
+      "severity": "critical",
+      "description": "Detected command_injection with 33% confidence",
+      "cve_id": null,
+      "cvss_score": 10.0,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "affected_assets": [
+        "https://nnip.com/api/users/{id}"
+      ],
+      "impact": "",
+      "reproduction_steps": [],
+      "remediation": "Ensure proper input validation and output encoding.",
+      "references": [],
+      "evidence": [
+        {
+          "evidence_id": "2d106a09-047f-43f6-933c-68f049e04cd2"
+        }
+      ],
+      "discovered_at": "2026-02-02T03:26:41.209049",
+      "tags": [
+        "command_injection"
+      ]
+    },
+    {
+      "title": "command_injection at https://nnip.com/api/admin/{id}",
+      "severity": "critical",
+      "description": "Detected command_injection with 33% confidence",
+      "cve_id": null,
+      "cvss_score": 10.0,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "affected_assets": [
+        "https://nnip.com/api/admin/{id}"
+      ],
+      "impact": "",
+      "reproduction_steps": [],
+      "remediation": "Ensure proper input validation and output encoding.",
+      "references": [],
+      "evidence": [
+        {
+          "evidence_id": "22546c26-db7f-4dcd-9f4d-6106d90a7232"
+        }
+      ],
+      "discovered_at": "2026-02-02T03:26:41.279917",
+      "tags": [
+        "command_injection"
+      ]
+    },
+    {
+      "title": "command_injection at https://nnip.com/api/admin/{id}",
+      "severity": "critical",
+      "description": "Detected command_injection with 33% confidence",
+      "cve_id": null,
+      "cvss_score": 10.0,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "affected_assets": [
+        "https://nnip.com/api/admin/{id}"
+      ],
+      "impact": "",
+      "reproduction_steps": [],
+      "remediation": "Ensure proper input validation and output encoding.",
+      "references": [],
+      "evidence": [
+        {
+          "evidence_id": "bec59ecf-86e1-4272-887c-83a55a8e784b"
+        }
+      ],
+      "discovered_at": "2026-02-02T03:26:41.350946",
+      "tags": [
+        "command_injection"
+      ]
+    }
+  ],
+  "reconnaissance": {
+    "scan_id": "recon-scan_20260202_032313",
+    "target": "nnip.com",
+    "status": "completed",
+    "total_assets": 19,
+    "asset_types": {
+      "subdomain": 10,
+      "technology": 9
+    },
+    "errors": 0,
+    "started_at": "2026-02-02T03:23:13.380129",
+    "completed_at": "2026-02-02T03:23:13.381583"
+  },
+  "affected_assets": [
+    "https://nnip.com/api/admin/{id}",
+    "https://nnip.com/api/users/{id}"
+  ]
+}

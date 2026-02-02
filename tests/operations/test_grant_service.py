@@ -1,10 +1,20 @@
 """Tests for grant service."""
 
+import sys
+import types
 from datetime import date, timedelta
 from decimal import Decimal
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+ops_pkg = types.ModuleType("operations")
+ops_pkg.__path__ = [str(ROOT / "operations")]
+sys.modules["operations"] = ops_pkg
 
 
 class TestGrantService:

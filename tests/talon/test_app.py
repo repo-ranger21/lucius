@@ -10,8 +10,7 @@ from talon.extensions import db
 @pytest.fixture
 def app():
     """Create test application."""
-    app = create_app()
-    app.config.update(
+    app = create_app(
         {
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",

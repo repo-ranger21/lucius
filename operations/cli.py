@@ -34,12 +34,40 @@ def grants() -> None:
     pass
 
 
+def _format_deadline(grant: Grant) -> str:
+    if grant.submission_deadline:
+        return grant.submission_deadline.strftime("%Y-%m-%d")
+    return "N/A"
+
+
+def _format_days_left(grant: Grant) -> str:
+    days_left = grant.days_until_deadline
+    if days_left is None:
+        return "N/A"
+    if days_left < 0:
+        return f"[red]{days_left} (overdue)[/]"
+    if days_left <= 7:
+        return f"[red]{days_left}[/]"
+    if days_left <= 30:
+        return f"[yellow]{days_left}[/]"
+    return str(days_left)
+
+
 @grants.command("list")
 @click.option("--status", "-s", help="Filter by status")
 @click.option("--priority", "-p", help="Filter by priority")
-@click.option("--upcoming", is_flag=True, help="Show grants with upcoming deadlines")
+@click.option(
+    "--upcoming",
+    is_flag=True,
+    help="Show grants with upcoming deadlines",
+)
 @click.pass_context
-def list_grants(ctx: click.Context, status: str | None, priority: str | None, upcoming: bool):
+def list_grants(
+    ctx: click.Context,
+    status: str | None,
+    priority: str | None,
+    upcoming: bool,
+):
     """List all grants."""
     with get_session() as session:
         service = GrantService(session)
@@ -62,23 +90,8 @@ def list_grants(ctx: click.Context, status: str | None, priority: str | None, up
         table.add_column("Days Left", justify="right")
 
         for grant in grants_list:
-            deadline_str = (
-                grant.submission_deadline.strftime("%Y-%m-%d")
-                if grant.submission_deadline
-                else "N/A"
-            )
-            days_left = grant.days_until_deadline
-            days_str = str(days_left) if days_left is not None else "N/A"
-
-            # Color code by urgency
-            if days_left is not None:
-                if days_left < 0:
-                    days_str = f"[red]{days_left} (overdue)[/]"
-                elif days_left <= 7:
-                    days_str = f"[red]{days_left}[/]"
-                elif days_left <= 30:
-                    days_str = f"[yellow]{days_left}[/]"
-
+            deadline_str = _format_deadline(grant)
+            days_str = _format_days_left(grant)
             amount_str = f"${grant.amount:,.2f}" if grant.amount else "N/A"
 
             table.add_row(
@@ -99,7 +112,10 @@ def list_grants(ctx: click.Context, status: str | None, priority: str | None, up
 @click.option("--amount", "-a", type=float, help="Grant amount")
 @click.option("--deadline", "-d", help="Submission deadline (YYYY-MM-DD)")
 @click.option(
-    "--priority", "-p", type=click.Choice(["low", "medium", "high", "critical"]), default="medium"
+    "--priority",
+    "-p",
+    type=click.Choice(["low", "medium", "high", "critical"]),
+    default="medium",
 )
 @click.pass_context
 def create_grant(
@@ -133,14 +149,33 @@ def create_grant(
 
 @grants.command("update")
 @click.argument("grant_id")
-@click.option("--status", "-s", type=click.Choice(Grant.STATUSES), help="New status")
-@click.option("--priority", "-p", type=click.Choice(Grant.PRIORITIES), help="New priority")
+@click.option(
+    "--status",
+    "-s",
+    type=click.Choice(Grant.STATUSES),
+    help="New status",
+)
+@click.option(
+    "--priority",
+    "-p",
+    type=click.Choice(Grant.PRIORITIES),
+    help="New priority",
+)
 @click.pass_context
-def update_grant(ctx: click.Context, grant_id: str, status: str | None, priority: str | None):
+def update_grant(
+    ctx: click.Context,
+    grant_id: str,
+    status: str | None,
+    priority: str | None,
+):
     """Update a grant."""
     with get_session() as session:
         service = GrantService(session)
-        grant = service.update_grant(grant_id, status=status, priority=priority)
+        grant = service.update_grant(
+            grant_id,
+            status=status,
+            priority=priority,
+        )
 
         if grant:
             console.print(f"[green]✓ Updated grant:[/] {grant.grant_name}")
@@ -156,9 +191,21 @@ def deadlines() -> None:
     pass
 
 
+def _urgency_icon(days_left: int) -> str:
+    if days_left <= 3:
+        return "🔴"
+    if days_left <= 7:
+        return "🟡"
+    return "🟢"
+
+
 @deadlines.command("check")
 @click.option("--days", "-d", type=int, default=7, help="Days to look ahead")
-@click.option("--send-reminders", is_flag=True, help="Send SMS reminders")
+@click.option(
+    "--send-reminders",
+    is_flag=True,
+    help="Send SMS reminders",
+)
 @click.pass_context
 def check_deadlines(ctx: click.Context, days: int, send_reminders: bool):
     """Check for upcoming deadlines."""
@@ -173,8 +220,9 @@ def check_deadlines(ctx: click.Context, days: int, send_reminders: bool):
         console.print(f"\n[bold]⏰ Upcoming Deadlines ({days} days)[/]\n")
 
         for grant, days_left in upcoming:
-            urgency = "🔴" if days_left <= 3 else "🟡" if days_left <= 7 else "🟢"
-            console.print(f"{urgency} {grant.grant_name} - {days_left} days ({grant.funder})")
+            urgency = _urgency_icon(days_left)
+            message = f"{urgency} {grant.grant_name} - " f"{days_left} days ({grant.funder})"
+            console.print(message)
 
         if send_reminders:
             sent = monitor.send_deadline_reminders()
@@ -182,7 +230,13 @@ def check_deadlines(ctx: click.Context, days: int, send_reminders: bool):
 
 
 @deadlines.command("start-monitor")
-@click.option("--interval", "-i", type=int, default=3600, help="Check interval in seconds")
+@click.option(
+    "--interval",
+    "-i",
+    type=int,
+    default=3600,
+    help="Check interval in seconds",
+)
 @click.pass_context
 def start_monitor(ctx: click.Context, interval: int):
     """Start deadline monitoring daemon."""
@@ -204,10 +258,19 @@ def data() -> None:
 @click.argument("input_file", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 @click.option(
-    "--format", "-f", "output_format", type=click.Choice(["csv", "json", "excel"]), default="csv"
+    "--format",
+    "-f",
+    "output_format",
+    type=click.Choice(["csv", "json", "excel"]),
+    default="csv",
 )
 @click.pass_context
-def clean_data(ctx: click.Context, input_file: str, output: str | None, output_format: str):
+def clean_data(
+    ctx: click.Context,
+    input_file: str,
+    output: str | None,
+    output_format: str,
+):
     """Clean nonprofit data from file."""
     input_path = Path(input_file)
     output_path = Path(output) if output else input_path.with_suffix(f".cleaned.{output_format}")
@@ -245,7 +308,11 @@ def import_data(ctx: click.Context, input_file: str, clean: bool):
 
     with get_session() as session:
         try:
-            result = cleaner.import_to_database(session, input_path, clean_first=clean)
+            result = cleaner.import_to_database(
+                session,
+                input_path,
+                clean_first=clean,
+            )
 
             console.print(f"\n[green]✓ Imported {result['imported']} records[/]")
             console.print(f"  - Updated: {result['updated']}")
@@ -299,6 +366,21 @@ def initialize_db(ctx: click.Context):
     console.print("Initializing database...")
     init_db()
     console.print("[green]✓ Database initialized[/]")
+
+
+@cli.command("scan-domain")
+@click.option(
+    "--mode",
+    type=click.Choice(["ghost-subdomain"]),
+    help="Mode of operation.",
+)
+def scan_domain(mode: str | None) -> None:
+    if mode == "ghost-subdomain":
+        # Logic to cross-reference historical DNS records for nnip.com
+        # Specifically for the years 2015 and 2024
+        # Use waybackurls logic to find lost endpoints
+        print("Scanning for ghost subdomains...")
+        # Implement the scanning logic here
 
 
 def main() -> None:

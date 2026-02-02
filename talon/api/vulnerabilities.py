@@ -6,8 +6,9 @@ from uuid import UUID
 
 from flask import request
 from flask_restx import Namespace, Resource, fields
-from marshmallow import EXCLUDE, Schema, ValidationError, validate
+from marshmallow import EXCLUDE, Schema, ValidationError
 from marshmallow import fields as ma_fields
+from marshmallow import validate
 
 from shared.logging import get_logger
 from talon.extensions import db
@@ -216,7 +217,7 @@ def get_vulnerability_service() -> VulnerabilityService:
 # ============================================================================
 
 
-@vulnerabilities_ns.route("")
+@vulnerabilities_ns.route("/")
 class VulnerabilityList(Resource):
     """Vulnerability collection resource."""
 
@@ -304,6 +305,33 @@ class VulnerabilityList(Resource):
         except Exception as e:
             logger.error(f"Error listing vulnerabilities: {e}", exc_info=True)
             vulnerabilities_ns.abort(500, "Internal server error")
+
+
+@vulnerabilities_ns.route("/search")
+class VulnerabilitySearch(Resource):
+    """Search vulnerabilities by keyword."""
+
+    @vulnerabilities_ns.doc("search_vulnerabilities")
+    @vulnerabilities_ns.param("keyword", "Search keyword")
+    def get(self):
+        """Search vulnerabilities by keyword."""
+        keyword = request.args.get("keyword")
+        if not keyword:
+            return [], 200
+
+        search_term = f"%{keyword}%"
+        vulns = (
+            Vulnerability.query.filter(
+                db.or_(
+                    Vulnerability.cve_id.ilike(search_term),
+                    Vulnerability.description.ilike(search_term),
+                )
+            )
+            .order_by(Vulnerability.created_at.desc())
+            .all()
+        )
+
+        return [v.to_dict() for v in vulns], 200
 
     @vulnerabilities_ns.doc("create_vulnerability", security="apikey")
     @vulnerabilities_ns.expect(vulnerability_create_model, validate=True)
@@ -840,4 +868,5 @@ class VulnerabilityStats(Resource):
 
         except Exception as e:
             logger.error(f"Error generating stats: {e}", exc_info=True)
+            vulnerabilities_ns.abort(500, "Internal server error")
             vulnerabilities_ns.abort(500, "Internal server error")

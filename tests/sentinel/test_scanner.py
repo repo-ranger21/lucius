@@ -43,7 +43,7 @@ class TestVulnerabilityScanner:
         results = scanner.scan(tmp_path)
 
         assert results is not None
-        assert results.total_dependencies == 0
+        assert results["total_dependencies"] == 0
 
     def test_scan_directory_with_requirements(self, scanner, mock_nvd_client, tmp_path):
         """Test scanning directory with requirements.txt."""

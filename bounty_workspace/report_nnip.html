@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Lucius Bounty Report - nnip.com</title>
+<style>
+
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .header {
+                background: #2c3e50;
+                color: white;
+                padding: 30px;
+                border-radius: 5px;
+                margin-bottom: 30px;
+            }
+            .header h1 {
+                margin: 0 0 20px 0;
+            }
+            .metadata {
+                font-size: 14px;
+            }
+            .metadata p {
+                margin: 5px 0;
+            }
+            .section {
+                background: white;
+                padding: 25px;
+                margin-bottom: 20px;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .section h2 {
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+                margin-top: 0;
+            }
+            .risk-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            .risk-table th, .risk-table td {
+                padding: 12px;
+                text-align: left;
+                border: 1px solid #ddd;
+            }
+            .risk-table th {
+                background-color: #34495e;
+                color: white;
+            }
+            .risk-table tr.critical { background-color: #ffe6e6; }
+            .risk-table tr.high { background-color: #fff3e6; }
+            .risk-table tr.medium { background-color: #fff9e6; }
+            .risk-table tr.low { background-color: #e6f7ff; }
+            .risk-table tr.info { background-color: #f0f0f0; }
+            .risk-table tr.total { background-color: #e8e8e8; font-weight: bold; }
+            .finding {
+                background: white;
+                padding: 20px;
+                margin-bottom: 20px;
+                border-left: 5px solid #ccc;
+                border-radius: 3px;
+            }
+            .finding-critical { border-left-color: #c0392b; }
+            .finding-high { border-left-color: #e67e22; }
+            .finding-medium { border-left-color: #f39c12; }
+            .finding-low { border-left-color: #3498db; }
+            .finding-info { border-left-color: #95a5a6; }
+            .finding h3 {
+                margin-top: 0;
+                color: #2c3e50;
+            }
+            .severity-badge {
+                display: inline-block;
+                padding: 5px 15px;
+                border-radius: 3px;
+                color: white;
+                font-weight: bold;
+                margin-bottom: 15px;
+            }
+            .severity-badge.critical { background-color: #c0392b; }
+            .severity-badge.high { background-color: #e67e22; }
+            .severity-badge.medium { background-color: #f39c12; }
+            .severity-badge.low { background-color: #3498db; }
+            .severity-badge.info { background-color: #95a5a6; }
+            ul, ol {
+                margin: 10px 0;
+            }
+        
+</style>
+</head>
+<body>
+<div class='header'>
+<h1>Lucius Bounty Report - nnip.com</h1>
+<div class='metadata'>
+<p><strong>Report ID:</strong> scan_20260202_032313</p>
+<p><strong>Target:</strong> nnip.com</p>
+<p><strong>Date:</strong> 2026-02-02T03:23:13.379612</p>
+<p><strong>Author:</strong> lucius_bot</p>
+<p><strong>Classification:</strong> CONFIDENTIAL</p>
+</div>
+</div>
+<div class='section'>
+<h2>Risk Summary</h2>
+<table class='risk-table'>
+<tr><th>Severity</th><th>Count</th></tr>
+<tr class='critical'><td>Critical</td><td>4</td></tr>
+<tr class='high'><td>High</td><td>0</td></tr>
+<tr class='medium'><td>Medium</td><td>0</td></tr>
+<tr class='low'><td>Low</td><td>0</td></tr>
+<tr class='info'><td>Info</td><td>0</td></tr>
+<tr class='total'><td><strong>Total</strong></td><td><strong>4</strong></td></tr>
+</table>
+</div>
+<div class='section'>
+<h2>Findings</h2>
+<div class='finding finding-critical'>
+<h3>1. command_injection at https://nnip.com/api/users/{id}</h3>
+<div class='severity-badge critical'>CRITICAL</div>
+<p><strong>CVSS Score:</strong> 10.0</p>
+<p><strong>Description:</strong></p>
+<p>Detected command_injection with 33% confidence</p>
+<p><strong>Affected Assets:</strong></p>
+<ul>
+<li>https://nnip.com/api/users/{id}</li>
+</ul>
+<p><strong>Remediation:</strong></p>
+<p>Ensure proper input validation and output encoding.</p>
+</div>
+<div class='finding finding-critical'>
+<h3>2. command_injection at https://nnip.com/api/users/{id}</h3>
+<div class='severity-badge critical'>CRITICAL</div>
+<p><strong>CVSS Score:</strong> 10.0</p>
+<p><strong>Description:</strong></p>
+<p>Detected command_injection with 33% confidence</p>
+<p><strong>Affected Assets:</strong></p>
+<ul>
+<li>https://nnip.com/api/users/{id}</li>
+</ul>
+<p><strong>Remediation:</strong></p>
+<p>Ensure proper input validation and output encoding.</p>
+</div>
+<div class='finding finding-critical'>
+<h3>3. command_injection at https://nnip.com/api/admin/{id}</h3>
+<div class='severity-badge critical'>CRITICAL</div>
+<p><strong>CVSS Score:</strong> 10.0</p>
+<p><strong>Description:</strong></p>
+<p>Detected command_injection with 33% confidence</p>
+<p><strong>Affected Assets:</strong></p>
+<ul>
+<li>https://nnip.com/api/admin/{id}</li>
+</ul>
+<p><strong>Remediation:</strong></p>
+<p>Ensure proper input validation and output encoding.</p>
+</div>
+<div class='finding finding-critical'>
+<h3>4. command_injection at https://nnip.com/api/admin/{id}</h3>
+<div class='severity-badge critical'>CRITICAL</div>
+<p><strong>CVSS Score:</strong> 10.0</p>
+<p><strong>Description:</strong></p>
+<p>Detected command_injection with 33% confidence</p>
+<p><strong>Affected Assets:</strong></p>
+<ul>
+<li>https://nnip.com/api/admin/{id}</li>
+</ul>
+<p><strong>Remediation:</strong></p>
+<p>Ensure proper input validation and output encoding.</p>
+</div>
+</div>
+</body>
+</html>
